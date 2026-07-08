@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu Cài Đặt Đa Năng Nâng Cao</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #1e1e24;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Container chính */
+        .settings-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Nút logo cài đặt hình tròn nhỏ */
+        .settings-toggle {
+            width: 55px;
+            height: 55px;
+            background: #3498db;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 10;
+        }
+
+        .settings-toggle i {
+            color: white;
+            font-size: 24px;
+            transition: transform 0.5s ease;
+        }
+
+        /* Đổi màu và xoay icon khi mở */
+        .settings-wrapper.open .settings-toggle {
+            background: #e74c3c;
+            transform: scale(0.95);
+        }
+
+        .settings-wrapper.open .settings-toggle i {
+            transform: rotate(90deg);
+        }
+
+        /* Bảng điều khiển tổng hợp bung ra */
+        .main-settings-panel {
+            position: absolute;
+            left: 40px;
+            background: #2c3e50;
+            width: 320px;
+            border-radius: 18px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            overflow: hidden; /* Để ẩn các slide khi chuyển tab */
+
+            /* Hiệu ứng ẩn/hiện mượt */
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(-20px) scale(0.9);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 5;
+        }
+
+        /* Trạng thái hiển thị khi click */
+        .settings-wrapper.open .main-settings-panel {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(30px) scale(1);
+        }
+
+        /* Khung chứa các view dạng trượt Slide */
+        .panel-container {
+            display: flex;
+            width: 300%; /* 3 bảng: Main, Lịch sử, Bảo mật */
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Định dạng chung cho từng View/Tab */
+        .view-panel {
+            width: 33.3333%;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* Tiêu đề thanh tác vụ phụ (Back & Title) */
+        .panel-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid #34495e;
+            padding-bottom: 8px;
+            color: #ecf0f1;
+        }
+
+        .btn-back {
+            background: none;
+            border: none;
+            color: #bdc3c7;
+            cursor: pointer;
+            font-size: 16px;
+            transition: color 0.2s;
+        }
+
+        .btn-back:hover {
+            color: #3498db;
+        }
+
+        /* --- PHÂN HỆ: CÀI ĐẶT ÂM THANH --- */
+        .setting-section {
+            border-bottom: 1px solid #34495e;
+            padding-bottom: 12px;
+        }
+
+        .setting-section:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .section-title {
+            color: #bdc3c7;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .audio-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .mute-btn {
+            background: none;
+            border: none;
+            color: #ecf0f1;
+            font-size: 16px;
+            cursor: pointer;
+            width: 25px;
+        }
+
+        .volume-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            flex: 1;
+            height: 6px;
+            background: #7f8c8d;
+            border-radius: 3px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #2ecc71;
+        }
+
+        .volume-percentage {
+            color: #ecf0f1;
+            font-size: 13px;
+            min-width: 35px;
+            text-align: right;
+        }
+
+        /* --- DANH SÁCH MENU CHÍNH --- */
+        .menu-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: #ecf0f1;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+            margin-top: 5px;
+        }
+
+        .menu-item:hover {
+            background: #34495e;
+        }
+
+        .menu-item-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .icon-history { color: #f1c40f; }
+        .icon-security { color: #9b59b6; }
+        .arrow-right { font-size: 11px; color: #7f8c8d; }
+
+        /* --- VIEW: BẢNG LỊCH SỬ GIAO DỊCH --- */
+        .table-wrapper {
+            max-height: 200px;
+            overflow-y: auto;
+            border-radius: 6px;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            color: #ecf0f1;
+            text-align: left;
+        }
+
+        .history-table th {
+            background: #34495e;
+            padding: 8px;
+            position: sticky;
+            top: 0;
+            color: #bdc3c7;
+        }
+
+        .history-table td {
+            padding: 8px;
+            border-bottom: 1px solid #3d566e;
+        }
+
+        .status-success { color: #2ecc71; font-weight: bold; }
+        .status-pending { color: #f1c40f; font-weight: bold; }
+
+        /* --- VIEW: OTP BẢO MẬT --- */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            color: #bdc3c7;
+            font-size: 12px;
+        }
+
+        .input-with-btn {
+            display: flex;
+            gap: 5px;
+        }
+
+        .form-input {
+            width: 100%;
+            background: #34495e;
+            border: 1px solid #455a64;
+            border-radius: 6px;
+            padding: 8px 12px;
+            color: white;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .form-input:focus {
+            border-color: #3498db;
+        }
+
+        .btn-action {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-action:hover {
+            background: #2980b9;
+        }
+
+        .btn-action:disabled {
+            background: #7f8c8d;
+            cursor: not-allowed;
+            color: #bdc3c7;
+        }
+
+        .btn-submit {
+            background: #2ecc71;
+            width: 100%;
+            margin-top: 5px;
+            padding: 10px;
+        }
+
+        .btn-submit:hover {
+            background: #27ae60;
+        }
+
+        .otp-box-wrapper {
+            display: flex;
+            justify-content: space-between;
+            gap: 6px;
+            margin: 5px 0;
+        }
+
+        .otp-input {
+            width: 42px;
+            height: 40px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        /* Thông báo Notification Banner */
+        .notification-toast {
+            position: fixed;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            z-index: 999;
+            transition: top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .notification-toast.show {
+            top: 25px;
+        }
+
+        .toast-error { background: #e74c3c; }
+        .toast-success { background: #2ecc71; }
+
+        /* Tùy chỉnh thanh cuộn mini */
+        .table-wrapper::-webkit-scrollbar { width: 5px; }
+        .table-wrapper::-webkit-scrollbar-thumb { background: #7f8c8d; border-radius: 3px; }
+    </style>
+</head>
+<body>
+
+    <div class="notification-toast" id="notificationToast">
+        <i id="toastIcon" class="fas"></i>
+        <span id="toastMessage">Thông báo</span>
+    </div>
+
+    <div class="settings-wrapper" id="settingsWrapper">
+        <div class="settings-toggle" id="settingsToggle" title="Mở cài đặt">
+            <i class="fas fa-cog"></i>
+        </div>
+
+        <div class="main-settings-panel">
+            <div class="panel-container" id="panelContainer">
+
+                <div class="view-panel">
+                    <div class="setting-section">
+                        <span class="section-title">Hệ thống âm thanh</span>
+                        <div class="audio-controls">
+                            <button class="mute-btn" id="muteBtn" title="Tắt/Bật tiếng">
+                                <i class="fas fa-volume-up" id="muteIcon"></i>
+                            </button>
+                            <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="70">
+                            <span class="volume-percentage" id="volumePercent">70%</span>
+                        </div>
+                    </div>
+
+                    <div class="setting-section">
+                        <span class="section-title">Tài khoản & Tiện ích</span>
+
+                        <div class="menu-item" onclick="changeTab(1)">
+                            <div class="menu-item-left">
+                                <i class="fas fa-history icon-history"></i>
+                                <span>Lịch sử giao dịch</span>
+                            </div>
+                            <i class="fas fa-chevron-right arrow-right"></i>
+                        </div>
+
+                        <div class="menu-item" onclick="changeTab(2)">
+                            <div class="menu-item-left">
+                                <i class="fas fa-shield-alt icon-security"></i>
+                                <span>Bảo mật OTP & SĐT</span>
+                            </div>
+                            <i class="fas fa-chevron-right arrow-right"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="view-panel">
+                    <div class="panel-header">
+                        <button class="btn-back" onclick="changeTab(0)"><i class="fas fa-arrow-left"></i></button>
+                        <span>Lịch sử giao dịch</span>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="history-table">
+                            <thead>
+                                <tr>
+                                    <th>Mã GD</th>
+                                    <th>Số tiền</th>
+                                    <th>Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>#TRX884</td>
+                                    <td>+500,000đ</td>
+                                    <td class="status-success">Thành công</td>
+                                </tr>
+                                <tr>
+                                    <td>#TRX512</td>
+                                    <td>-120,000đ</td>
+                                    <td class="status-success">Thành công</td>
+                                </tr>
+                                <tr>
+                                    <td>#TRX204</td>
+                                    <td>+2,000,000đ</td>
+                                    <td class="status-pending">Chờ xử lý</td>
+                                </tr>
+                                <tr>
+                                    <td>#TRX091</td>
+                                    <td>-450,000đ</td>
+                                    <td class="status-success">Thành công</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="view-panel">
+                    <div class="panel-header">
+                        <button class="btn-back" onclick="changeTab(0)"><i class="fas fa-arrow-left"></i></button>
+                        <span>Bảo mật tài khoản</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Đăng ký Số điện thoại</label>
+                        <div class="input-with-btn">
+                            <input type="tel" class="form-input" placeholder="Nhập số điện thoại..." id="phoneInput">
+                            <button class="btn-action" id="sendOtpBtn" onclick="sendOtpReal()">Gửi OTP</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Xác thực mã OTP (6 số)</label>
+                        <div class="otp-box-wrapper">
+                            <input type="text" class="form-input otp-input" maxlength="1" oninput="this.value=this.value.replace(/[^0-9]/g,'');">
+                            <input type="text" class="form-input otp-input" maxlength="1" oninput="this.value=this.value.replace(/[^0-9]/g,'');">
+                            <input type="text" class="form-input otp-input" maxlength="1" oninput="this.value=this.value.replace(/[^0-9]/g,'');">
+                            <input type="text" class="form-input otp-input" maxlength="1" oninput="this.value=this.value.replace(/[^0-9]/g,'');">
+                            <input type="text" class="form-input otp-input" maxlength="1" oninput="this.value=this.value.replace(/[^0-9]/g,'');">
+                            <input type="text" class="form-input otp-input" maxlength="1" oninput="this.value=this.value.replace(/[^0-9]/g,'');">
+                        </div>
+                    </div>
+
+                    <button class="btn-action btn-submit" onclick="verifyOtpAndLink()">Xác nhận Liên kết</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const settingsWrapper = document.getElementById('settingsWrapper');
+        const settingsToggle = document.getElementById('settingsToggle');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const volumePercent = document.getElementById('volumePercent');
+        const muteBtn = document.getElementById('muteBtn');
+        const muteIcon = document.getElementById('muteIcon');
+        const panelContainer = document.getElementById('panelContainer');
+
+        const sendOtpBtn = document.getElementById('sendOtpBtn');
+        const phoneInput = document.getElementById('phoneInput');
+        const otpInputs = document.querySelectorAll('.otp-input');
+        const notificationToast = document.getElementById('notificationToast');
+        const toastMessage = document.getElementById('toastMessage');
+        const toastIcon = document.getElementById('toastIcon');
+
+        let lastVolume = volumeSlider.value;
+        let countdownTimer = null;
+
+        // 1. Đóng / Mở Menu chính
+        settingsToggle.addEventListener('click', () => {
+            settingsWrapper.classList.toggle('open');
+            if(!settingsWrapper.classList.contains('open')) {
+                setTimeout(() => changeTab(0), 300);
+            }
+        });
+
+        // Click ra ngoài tự động đóng menu
+        document.addEventListener('click', (e) => {
+            if (!settingsWrapper.contains(e.target)) {
+                settingsWrapper.classList.remove('open');
+                setTimeout(() => changeTab(0), 300);
+            }
+        });
+
+        // 2. SỬA LỖI: Chuyển đổi Tab chuẩn xác không lệch tỉ lệ phần trăm hiển thị
+        function changeTab(tabIndex) {
+            panelContainer.style.transform = `translateX(-${tabIndex * 33.3333}%)`;
+        }
+
+        // 3. Quản lý hệ thống Âm thanh
+        function updateVolumeIcon(volume) {
+            if (volume == 0) {
+                muteIcon.className = 'fas fa-volume-mute';
+                muteIcon.style.color = '#e74c3c';
+            } else if (volume < 40) {
+                muteIcon.className = 'fas fa-volume-down';
+                muteIcon.style.color = '#ecf0f1';
+            } else {
+                muteIcon.className = 'fas fa-volume-up';
+                muteIcon.style.color = '#ecf0f1';
+            }
+        }
+
+        volumeSlider.addEventListener('input', (e) => {
+            const value = e.target.value;
+            volumePercent.innerText = `${value}%`;
+            updateVolumeIcon(value);
+        });
+
+        muteBtn.addEventListener('click', () => {
+            if (volumeSlider.value > 0) {
+                lastVolume = volumeSlider.value;
+                volumeSlider.value = 0;
+            } else {
+                volumeSlider.value = lastVolume == 0 ? 50 : lastVolume;
+            }
+            volumePercent.innerText = `${volumeSlider.value}%`;
+            updateVolumeIcon(volumeSlider.value);
+        });
+
+        // 4. Auto focus chuyển ô tiếp theo khi nhập mã OTP
+        otpInputs.forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                if (e.target.value.length === 1 && index < otpInputs.length - 1) {
+                    otpInputs[index + 1].focus();
+                }
+            });
+            input.addEventListener('keydown', (e) => {
+                if (e.key === "Backspace" && e.target.value.length === 0 && index > 0) {
+                    otpInputs[index - 1].focus();
+                }
+            });
+        });
+
+        // 5. Hàm xuất thông báo Toast
+        function showToast(message, type) {
+            toastMessage.innerText = message;
+            notificationToast.className = `notification-toast show toast-${type}`;
+            if (type === 'success') {
+                toastIcon.className = 'fas fa-check-circle';
+            } else {
+                toastIcon.className = 'fas fa-exclamation-circle';
+            }
+
+            setTimeout(() => {
+                notificationToast.classList.remove('show');
+            }, 3000);
+        }
+
+        // 6. Xử lý sự kiện "Gửi mã OTP" đếm ngược 26 giây
+        function sendOtpReal() {
+            const phoneNumber = phoneInput.value.trim();
+            if (phoneNumber === "") {
+                showToast("Vui lòng nhập số điện thoại trước!", "error");
+                phoneInput.focus();
+                return;
+            }
+
+            showToast("Đã gửi mã xác thực OTP qua SMS!", "success");
+
+            let timeLeft = 26; 
+            sendOtpBtn.disabled = true;
+            sendOtpBtn.innerText = `Gửi lại (${timeLeft}s)`;
+
+            clearInterval(countdownTimer);
+            countdownTimer = setInterval(() => {
+                timeLeft--;
+                if (timeLeft <= 0) {
+                    clearInterval(countdownTimer);
+                    sendOtpBtn.disabled = false;
+                    sendOtpBtn.innerText = "Gửi lại OTP";
+                } else {
+                    sendOtpBtn.innerText = `Gửi lại (${timeLeft}s)`;
+                }
+            }, 1000);
+        }
+
+        // 7. Xử lý "Xác nhận Liên kết" SĐT
+        function verifyOtpAndLink() {
+            let otpCode = "";
+            otpInputs.forEach(input => {
+                otpCode += input.value;
+            });
+
+            if (otpCode.length < 6) {
+                showToast("Chưa có mã xác thực OTP 6 số hoặc chưa nhập đủ!", "error");
+                for (let input of otpInputs) {
+                    if (input.value === "") {
+                        input.focus();
+                        break;
+                    }
+                }
+                return;
+            }
+
+            showToast("Đã duyệt! Xác thực liên kết SĐT thành công.", "success");
+
+            setTimeout(() => {
+                phoneInput.value = "";
+                otpInputs.forEach(input => input.value = "");
+                changeTab(0); 
+            }, 1500);
+        }
+    </script>
+</body>
+</html>
