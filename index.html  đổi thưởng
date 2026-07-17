@@ -1,0 +1,1289 @@
+app.py
+from flask import Flask, jsonify, render_code
+import random
+import numpy as np
+
+app = Flask(__name__)
+
+# Lưu trữ lịch sử ván đấu để phân tích AI chuỗi Markov nâng cao
+game_history = []
+
+@app.route('/api/sicbo/roll', methods=['GET'])
+def get_sicbo_roll():
+    # Giả lập kết quả xúc xắc theo thuật toán ngẫu nhiên chống gian lận vật lý
+    dice1 = random.randint(1, 6)
+    dice2 = random.randint(1, 6)
+    dice3 = random.randint(1, 6)
+    total = dice1 + dice2 + dice3
+    result_type = "TÀI" if total >= 11 else "XỈU"
+    
+    game_history.append(total)
+    if len(game_history) > 100:
+        game_history.pop(0)
+
+    # Thuật toán AI phân tích xu hướng xác suất cho ván tiếp theo
+    ai_prediction = analyze_ai_prediction()
+
+    return jsonify({
+        "dice": [dice1, dice2, dice3],
+        "total": total,
+        "result": result_type,
+        "prediction": ai_prediction
+    })
+
+def analyze_ai_prediction():
+    if len(game_history) < 5:
+        return {"tai": 50, "xiu": 50}
+    
+    # Tính toán độ lệch phân phối Gauss (Normal Distribution) để đưa ra dự báo
+    recent_mean = np.mean(game_history[-10:])
+    if recent_mean > 10.5:
+        # Xu hướng có độ lệch cầu về Xỉu để cân bằng lại trục trung hòa
+        xiu_chance = min(78, int(50 + (recent_mean - 10.5) * 6))
+        tai_chance = 100 - xiu_chance
+    else:
+        tai_chance = min(78, int(50 + (10.5 - recent_mean) * 6))
+        xiu_chance = 100 - tai_chance
+
+    return {
+        "tai": tai_chance,
+        "xiu": xiu_chance
+    }
+
+if __name__ == '__main__':
+    app.run(port=5000, debug=True)
+
+
+server.js
+
+const WebSocket = require('ws');
+const wss = new WebSocket.Server({ port: 8080 });
+
+console.log("Casino WebSocket Server đang chạy tại cổng 8080...");
+
+let timeLeft = 26;
+let currentResults = [1, 1, 1];
+let isBettingPhase = true;
+
+// Hàm cập nhật trạng thái phòng đấu mỗi giây một lần
+setInterval(() => {
+    if (timeLeft > 0) {
+        timeLeft--;
+        // Giả lập bot cược liên tục vào cả hai cửa để tăng tương tác thực tế
+        let botXiuBet = Math.floor(Math.random() * 25000000);
+        let botTaiBet = Math.floor(Math.random() * 25000000);
+
+        broadcast({
+            event: "tick",
+            timeLeft: timeLeft,
+            bettingAllowed: isBettingPhase,
+            botBets: { xiu: botXiuBet, tai: botTaiBet }
+        });
+    } else {
+        if (isBettingPhase) {
+            // Chuyển sang giai đoạn mở bát
+            isBettingPhase = false;
+            timeLeft = 5; // Thời gian hiển thị kết quả lăn 3D
+            currentResults = [
+                Math.floor(Math.random() * 6) + 1,
+                Math.floor(Math.random() * 6) + 1,
+                Math.floor(Math.random() * 6) + 1
+            ];
+            broadcast({
+                event: "roll",
+                dice: currentResults,
+                timeLeft: timeLeft
+            });
+        } else {
+            // Khởi động phiên mới
+            isBettingPhase = true;
+            timeLeft = 26;
+            broadcast({
+                event: "new_round",
+                timeLeft: timeLeft
+            });
+        }
+    }
+}, 1000);
+
+function broadcast(data) {
+    wss.clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify(data));
+        }
+    });
+}
+
+
+
+PHP
+
+<?php
+// Thiết lập cấu hình kết nối database hoặc API
+$wsServerUrl = "ws://localhost:8080";
+$apiServerUrl = "http://localhost:5000";
+?>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Casino Sic Bo Premium - VIP Member Area</title>
+    
+    <!-- Nhúng thư viện đồ họa chuyên nghiệp Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script>
+        // Truyền thẳng thông tin môi trường bảo mật từ PHP sang JS
+        window.WS_SERVER = "<?php echo $wsServerUrl; ?>";
+        window.API_SERVER = "<?php echo $apiServerUrl; ?>";
+    </script>
+
+    <style>
+        :root {
+            --dice-size: 60px;
+            --gold-grad: linear-gradient(135deg, #ffe066 0%, #f3a516 50%, #c1840b 100%);
+            --metal-border: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+            --neon-blue: #00f0ff;
+            --neon-red: #ff0055;
+            --shadow-rgb: 0, 0, 0;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: radial-gradient(circle at center, #150221 0%, #07010d 70%, #000000 100%);
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            overflow: hidden;
+            user-select: none;
+            color: #fff;
+        }
+
+        /* --- TOOL PHÂN TÍCH AI VIP --- */
+        .analyzer-tool {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 2, 28, 0.9);
+            border: 2px solid var(--neon-blue);
+            border-radius: 30px;
+            padding: 10px 25px;
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+        .analyzer-title {
+            color: #00f0ff;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+        .analyzer-rate {
+            font-weight: 900;
+            font-size: 20px;
+            text-shadow: 0 0 10px currentColor;
+        }
+        .rate-tai { color: var(--neon-red); }
+        .rate-xiu { color: var(--neon-blue); }
+
+        /* --- THANH SỐ DƯ & HEADER --- */
+        .top-navigation {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            z-index: 10;
+        }
+        .header-bar {
+            display: flex;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid #d4af37;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+        }
+        .balance-label {
+            color: #a3c2a6;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 8px;
+            text-transform: uppercase;
+        }
+        .balance-amount {
+            color: #00ff88;
+            font-size: 16px;
+            font-weight: bold;
+            text-shadow: 0 0 6px rgba(0,255,136,0.4);
+        }
+
+        /* --- LOGO VIP --- */
+        .casino-logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 60px;
+            margin-bottom: 10px;
+            z-index: 10;
+        }
+        .royal-crown {
+            width: 40px;
+            height: 25px;
+            background: var(--metal-border);
+            clip-path: polygon(0% 100%, 0% 30%, 25% 60%, 50% 10%, 75% 60%, 100% 30%, 100% 100%);
+            margin-bottom: 5px;
+            animation: crownFloat 3s ease-in-out infinite;
+        }
+        @keyframes crownFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+        .casino-logo {
+            font-size: 30px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 6px;
+            background: linear-gradient(135deg, #ffe066 0%, #f3a516 50%, #c1840b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* --- KHU VỰC SÂN KHẤU XÚC XẮC 3D --- */
+        .main-stage {
+            position: relative;
+            width: 400px;
+            height: 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, rgba(0,0,0,0) 70%);
+        }
+        #threejs-dice-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            pointer-events: none;
+        }
+        .countdown-number {
+            position: absolute;
+            font-size: 55px;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 900;
+            z-index: 1;
+            text-shadow: 0 0 15px var(--neon-red);
+        }
+        .status-text {
+            position: absolute;
+            bottom: 10px;
+            color: #ffd700;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: bold;
+            z-index: 10;
+        }
+
+        /* --- BÀN CƯỢC CASINO --- */
+        .betting-table {
+            display: flex;
+            gap: 25px;
+            width: 55px;
+            width: 550px;
+            margin-top: 15px;
+            z-index: 5;
+        }
+        .bet-box {
+            flex: 1;
+            height: 160px;
+            background: rgba(10, 5, 18, 0.75);
+            border-radius: 24px;
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 10px;
+            box-sizing: border-box;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.9), 0 10px 20px rgba(0,0,0,0.5);
+            border: 2px solid rgba(255, 255, 255, 0.05);
+        }
+        .bet-box.xiu { border-color: var(--neon-blue); }
+        .bet-box.tai { border-color: var(--neon-red); }
+        
+        .side-title {
+            font-size: 36px;
+            font-weight: 950;
+            margin: 0;
+        }
+        .tai .side-title { color: #ff4d4d; }
+        .xiu .side-title { color: #4dadff; }
+
+        .side-total-bet {
+            font-size: 14px;
+            font-weight: bold;
+            color: #aaa;
+        }
+        .side-player-bet {
+            font-size: 12px;
+            color: #00ff88;
+            background: rgba(0,0,0,0.4);
+            padding: 4px 12px;
+            border-radius: 10px;
+        }
+
+        .bet-box.selected-target {
+            transform: translateY(-5px) scale(1.03);
+        }
+        .bet-box.xiu.selected-target { box-shadow: 0 0 25px rgba(0, 240, 255, 0.5); }
+        .bet-box.tai.selected-target { box-shadow: 0 0 25px rgba(255, 0, 85, 0.5); }
+
+        @keyframes goldPulse {
+            0%, 100% { border-color: #ffd700; filter: brightness(1); box-shadow: 0 0 20px #ffd700; }
+            50% { border-color: #fff; filter: brightness(1.3); box-shadow: 0 0 40px #ffd700; }
+        }
+        .bet-box.winning-flash {
+            animation: goldPulse 0.5s ease-in-out infinite;
+        }
+
+        /* CHIP CƯỢC PHÁT SÁNG */
+        .chip-container {
+            display: flex;
+            gap: 12px;
+            margin-top: 25px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 12px 20px;
+            border-radius: 40px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            z-index: 5;
+        }
+        .chip {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 11px;
+            font-weight: 900;
+            cursor: pointer;
+            border: 3px dashed rgba(255, 255, 255, 0.8);
+            transition: all 0.25s ease;
+        }
+        .chip:hover { transform: translateY(-5px) scale(1.1); }
+        .chip.selected {
+            transform: translateY(-12px) scale(1.15);
+            box-shadow: 0 0 20px #ffd700;
+            border-style: solid;
+        }
+        .chip[data-val="10k"] { background: #1c75bc; }
+        .chip[data-val="50k"] { background: #00a651; }
+        .chip[data-val="100k"] { background: #92278f; }
+        .chip[data-val="500k"] { background: #d11a1a; }
+        .chip[data-val="1M"] { background: #de9610; }
+
+        .win-notification {
+            position: absolute;
+            font-size: 24px;
+            font-weight: 900;
+            color: #ffd700;
+            text-shadow: 0 0 10px #ff6600;
+            animation: floatUp 2s forwards ease-out;
+            z-index: 100;
+        }
+        @keyframes floatUp {
+            0% { opacity: 0; transform: translateY(20px); }
+            20% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-60px); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- THÔNG TIN PHÂN TÍCH AI -->
+    <div class="analyzer-tool">
+        <span class="analyzer-title">AI VIP Predictor:</span>
+        <span class="analyzer-rate rate-tai" id="ai-tai">Tài 50%</span>
+        <span class="analyzer-rate rate-xiu" id="ai-xiu">Xỉu 50%</span>
+    </div>
+
+    <!-- THANH ĐIỀU HƯỚNG SỐ DƯ -->
+    <div class="top-navigation">
+        <div class="header-bar">
+            <span class="balance-label">Số Dư VIP:</span>
+            <span class="balance-amount" id="user-balance">100,000,000 đ</span>
+        </div>
+    </div>
+
+    <!-- LOGO HOÀNG GIA -->
+    <div class="casino-logo-container">
+        <div class="royal-crown"></div>
+        <div class="casino-logo">SIC BO PREMIUM</div>
+    </div>
+
+    <!-- SÂN KHẤU TRUNG TÂM -->
+    <div class="main-stage">
+        <div class="countdown-number" id="timer">26</div>
+        <div id="threejs-dice-container"></div>
+        <div class="status-text" id="status-display">Đang Chờ Đặt Cược</div>
+    </div>
+
+    <!-- BÀN CƯỢC -->
+    <div class="betting-table">
+        <div class="bet-box xiu" onclick="selectBetSide('xiu')">
+            <h2 class="side-title">XỈU</h2>
+            <span class="side-desc">4 - 10 (1 Ăn 1)</span>
+            <div class="side-total-bet">Tổng: <span id="total-bet-xiu">0</span>đ</div>
+            <div class="side-player-bet">Bạn cược: <span id="my-bet-xiu">0</span>đ</div>
+        </div>
+        <div class="bet-box tai" onclick="selectBetSide('tai')">
+            <h2 class="side-title">TÀI</h2>
+            <span class="side-desc">11 - 17 (1 Ăn 1)</span>
+            <div class="side-total-bet">Tổng: <span id="total-bet-tai">0</span>đ</div>
+            <div class="side-player-bet">Bạn cược: <span id="my-bet-tai">0</span>đ</div>
+        </div>
+    </div>
+
+    <!-- THANH CHIP CƯỢC -->
+    <div class="chip-container">
+        <div class="chip selected" data-val="10000" onclick="selectChip(this, 10000)">10K</div>
+        <div class="chip" data-val="50000" onclick="selectChip(this, 50000)">50K</div>
+        <div class="chip" data-val="100000" onclick="selectChip(this, 100000)">100K</div>
+        <div class="chip" data-val="500000" onclick="selectChip(this, 500000)">500K</div>
+        <div class="chip" data-val="1000000" onclick="selectChip(this, 1000000)">1M</div>
+    </div>
+
+    <!-- LOGIC ENGINE JAVASCRIPT -->
+    <script>
+        // Hệ thống Quản lý Số dư & Trạng thái Cược Phía Client
+        let userBalance = 100000000;
+        let currentSelectedChip = 10000;
+        let playerBets = { tai: 0, xiu: 0 };
+        let activeSide = null;
+
+        function selectChip(element, value) {
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+            element.classList.add('selected');
+            currentSelectedChip = value;
+        }
+
+        function selectBetSide(side) {
+            document.querySelectorAll('.bet-box').forEach(b => b.classList.remove('selected-target'));
+            const targetBox = document.querySelector(`.bet-box.${side}`);
+            targetBox.classList.add('selected-target');
+            
+            if (userBalance >= currentSelectedChip) {
+                userBalance -= currentSelectedChip;
+                playerBets[side] += currentSelectedChip;
+                document.getElementById('user-balance').innerText = userBalance.toLocaleString() + " đ";
+                document.getElementById(`my-bet-${side}`).innerText = playerBets[side].toLocaleString();
+            } else {
+                alert("Số dư VIP không đủ thực hiện lệnh cược này!");
+            }
+        }
+
+        // --- KHỞI TẠO KHÔNG GIAN 3D THREEJS CHO XÚC XẮC ---
+        let scene, camera, renderer, diceMeshes = [];
+        const container = document.getElementById('threejs-dice-container');
+
+        function init3DWorld() {
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            
+            scene = new THREE.Scene();
+            
+            camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+            camera.position.set(0, 0, 300);
+
+            renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(width, height);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.shadowMap.enabled = true;
+            container.appendChild(renderer.domElement);
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            const pointLight = new THREE.PointLight(0xffffff, 1.2, 500);
+            pointLight.position.set(50, 150, 100);
+            pointLight.castShadow = true;
+            scene.add(pointLight);
+            
+            const initialPositions = [
+                new THREE.Vector3(-45, 15, 0),
+                new THREE.Vector3(45, 15, 0),
+                new THREE.Vector3(0, -45, 10)
+            ];
+
+            for (let i = 0; i < 3; i++) {
+                const dice = createThreeJSDice();
+                dice.position.copy(initialPositions[i]);
+                scene.add(dice);
+                diceMeshes.push(dice);
+            }
+
+            animateEngine();
+        }
+
+        function createThreeJSDice() {
+            const size = 32;
+            const geometry = new THREE.BoxGeometry(size, size, size);
+            const materials = [];
+            const dotConfigs = [
+                [ [0.5, 0.5] ], // 1
+                [ [0.25, 0.25], [0.75, 0.75] ], // 2
+                [ [0.2, 0.2], [0.5, 0.5], [0.8, 0.8] ], // 3
+                [ [0.25, 0.25], [0.25, 0.75], [0.75, 0.25], [0.75, 0.75] ], // 4
+                [ [0.2, 0.2], [0.2, 0.8], [0.5, 0.5], [0.8, 0.2], [0.8, 0.8] ], // 5
+                [ [0.25, 0.2], [0.25, 0.5], [0.25, 0.8], [0.75, 0.2], [0.75, 0.5], [0.75, 0.8] ] // 6
+            ];
+
+            for (let f = 1; f <= 6; f++) {
+                const canvas = document.createElement('canvas');
+                canvas.width = 128;
+                canvas.height = 128;
+                const ctx = canvas.getContext('2d');
+
+                const grad = ctx.createRadialGradient(64, 64, 5, 64, 64, 90);
+                grad.addColorStop(0, '#ff3b3b');
+                grad.addColorStop(0.8, '#990000');
+                grad.addColorStop(1, '#4a0000');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, 128, 128);
+
+                ctx.strokeStyle = 'rgba(255, 215, 0, 0.3)';
+                ctx.lineWidth = 6;
+                ctx.strokeRect(3, 3, 122, 122);
+
+                ctx.fillStyle = (f === 1) ? '#ffcc00' : '#ffffff';
+                dotConfigs[f - 1].forEach(pos => {
+                    ctx.beginPath();
+                    ctx.arc(pos[0] * 128, pos[1] * 128, (f === 1) ? 18 : 10, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = 'rgba(0,0,0,0.6)';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                });
+
+                const texture = new THREE.CanvasTexture(canvas);
+                materials.push(new THREE.MeshPhongMaterial({ map: texture, shininess: 120 }));
+            }
+            return new THREE.Mesh(geometry, materials);
+        }
+
+        const targetRotations = {
+            1: { x: 0, y: 0, z: 0 },
+            2: { x: 0, y: -Math.PI / 2, z: 0 },
+            3: { x: -Math.PI / 2, y: 0, z: 0 },
+            4: { x: Math.PI / 2, y: 0, z: 0 },
+            5: { x: 0, y: Math.PI / 2, z: 0 },
+            6: { x: Math.PI, y: 0, z: 0 }
+        };
+
+        let isRolling3D = false;
+
+        function roll3DDice(results) {
+            isRolling3D = true;
+            let duration = 3000;
+            let startTime = Date.now();
+
+            function updatePhysics() {
+                let elapsed = Date.now() - startTime;
+                let progress = elapsed / duration;
+
+                if (progress < 1) {
+                    diceMeshes.forEach((dice, idx) => {
+                        dice.rotation.x += 0.35 + idx * 0.05;
+                        dice.rotation.y += 0.4 + idx * 0.05;
+                        dice.rotation.z += 0.25;
+                        dice.position.y += Math.sin(elapsed * 0.05 + idx) * 1.5;
+                    });
+                    requestAnimationFrame(updatePhysics);
+                } else {
+                    isRolling3D = false;
+                    diceMeshes.forEach((dice, idx) => {
+                        const face = results[idx];
+                        const target = targetRotations[face];
+                        dice.rotation.set(target.x, target.y, target.z);
+                        dice.position.y = (idx === 2) ? -45 : 15;
+                    });
+                    triggerWinLoseLogic(results);
+                }
+            }
+            updatePhysics();
+        }
+
+        function animateEngine() {
+            requestAnimationFrame(animateEngine);
+            renderer.render(scene, camera);
+        }
+
+        // Xử lý thắng thua & cộng tiền
+        function triggerWinLoseLogic(results) {
+            const sum = results.reduce((a, b) => a + b, 0);
+            const finalResult = (sum >= 11) ? 'tai' : 'xiu';
+
+            document.getElementById('status-display').innerText = `Kết quả: ${sum} - ${finalResult.toUpperCase()}`;
+            
+            const winningBox = document.querySelector(`.bet-box.${finalResult}`);
+            winningBox.classList.add('winning-flash');
+
+            let winAmount = playerBets[finalResult] * 2;
+            if (winAmount > 0) {
+                userBalance += winAmount;
+                document.getElementById('user-balance').innerText = userBalance.toLocaleString() + " đ";
+                
+                let winEl = document.createElement('div');
+                winEl.className = 'win-notification';
+                winEl.innerText = `+${winAmount.toLocaleString()}đ`;
+                winningBox.appendChild(winEl);
+            }
+        }
+
+        // --- KẾT NỐI WEBSOCKET REAL-TIME DỮ LIỆU ---
+        const ws = new WebSocket(window.WS_SERVER);
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            
+            if (data.event === "tick") {
+                document.getElementById('timer').innerText = data.timeLeft;
+                document.getElementById('total-bet-xiu').innerText = data.botBets.xiu.toLocaleString();
+                document.getElementById('total-bet-tai').innerText = data.botBets.tai.toLocaleString();
+                
+                // Giả lập cập nhật tỷ lệ AI VIP ngẫu nhiên theo luồng cược
+                let total = data.botBets.xiu + data.botBets.tai;
+                let taiRate = Math.round((data.botBets.tai / total) * 100);
+                document.getElementById('ai-tai').innerText = `Tài ${taiRate}%`;
+                document.getElementById('ai-xiu').innerText = `Xỉu ${100 - taiRate}%`;
+                
+                document.getElementById('status-display').innerText = "Vui Lòng Đặt Cược";
+            } 
+            else if (data.event === "roll") {
+                document.getElementById('timer').innerText = "0";
+                document.getElementById('status-display').innerText = "Hết Thời Gian - Đang Mở Bát...";
+                roll3DDice(data.dice);
+            } 
+            else if (data.event === "new_round") {
+                // Khởi động lại phiên mới, xóa sạch dữ liệu cũ
+                document.querySelectorAll('.bet-box').forEach(b => {
+                    b.classList.remove('winning-flash', 'selected-target');
+                    const notification = b.querySelector('.win-notification');
+                    if(notification) notification.remove();
+                });
+                playerBets = { tai: 0, xiu: 0 };
+                document.getElementById('my-bet-tai').innerText = "0";
+                document.getElementById('my-bet-xiu').innerText = "0";
+                document.getElementById('status-display').innerText = "Vòng Mới Bắt Đầu";
+            }
+        };
+
+        window.addEventListener('load', () => {
+            init3DWorld();
+        });
+    </script>
+</body>
+</html>
+
+
+style.css
+
+
+<?php
+// Thiết lập cấu hình kết nối database hoặc API
+$wsServerUrl = "ws://localhost:8080";
+$apiServerUrl = "http://localhost:5000";
+?>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Casino Sic Bo Premium - VIP Member Area</title>
+    
+    <!-- Nhúng thư viện đồ họa chuyên nghiệp Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script>
+        // Truyền thẳng thông tin môi trường bảo mật từ PHP sang JS
+        window.WS_SERVER = "<?php echo $wsServerUrl; ?>";
+        window.API_SERVER = "<?php echo $apiServerUrl; ?>";
+    </script>
+
+    <style>
+        :root {
+            --dice-size: 60px;
+            --gold-grad: linear-gradient(135deg, #ffe066 0%, #f3a516 50%, #c1840b 100%);
+            --metal-border: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+            --neon-blue: #00f0ff;
+            --neon-red: #ff0055;
+            --shadow-rgb: 0, 0, 0;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: radial-gradient(circle at center, #150221 0%, #07010d 70%, #000000 100%);
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            overflow: hidden;
+            user-select: none;
+            color: #fff;
+        }
+
+        /* --- TOOL PHÂN TÍCH AI VIP --- */
+        .analyzer-tool {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 2, 28, 0.9);
+            border: 2px solid var(--neon-blue);
+            border-radius: 30px;
+            padding: 10px 25px;
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+        .analyzer-title {
+            color: #00f0ff;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+        .analyzer-rate {
+            font-weight: 900;
+            font-size: 20px;
+            text-shadow: 0 0 10px currentColor;
+        }
+        .rate-tai { color: var(--neon-red); }
+        .rate-xiu { color: var(--neon-blue); }
+
+        /* --- THANH SỐ DƯ & HEADER --- */
+        .top-navigation {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            z-index: 10;
+        }
+        .header-bar {
+            display: flex;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid #d4af37;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+        }
+        .balance-label {
+            color: #a3c2a6;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 8px;
+            text-transform: uppercase;
+        }
+        .balance-amount {
+            color: #00ff88;
+            font-size: 16px;
+            font-weight: bold;
+            text-shadow: 0 0 6px rgba(0,255,136,0.4);
+        }
+
+        /* --- LOGO VIP --- */
+        .casino-logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 60px;
+            margin-bottom: 10px;
+            z-index: 10;
+        }
+        .royal-crown {
+            width: 40px;
+            height: 25px;
+            background: var(--metal-border);
+            clip-path: polygon(0% 100%, 0% 30%, 25% 60%, 50% 10%, 75% 60%, 100% 30%, 100% 100%);
+            margin-bottom: 5px;
+            animation: crownFloat 3s ease-in-out infinite;
+        }
+        @keyframes crownFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+        .casino-logo {
+            font-size: 30px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 6px;
+            background: linear-gradient(135deg, #ffe066 0%, #f3a516 50%, #c1840b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* --- KHU VỰC SÂN KHẤU XÚC XẮC 3D --- */
+        .main-stage {
+            position: relative;
+            width: 400px;
+            height: 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, rgba(0,0,0,0) 70%);
+        }
+        #threejs-dice-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            pointer-events: none;
+        }
+        .countdown-number {
+            position: absolute;
+            font-size: 55px;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 900;
+            z-index: 1;
+            text-shadow: 0 0 15px var(--neon-red);
+        }
+        .status-text {
+            position: absolute;
+            bottom: 10px;
+            color: #ffd700;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: bold;
+            z-index: 10;
+        }
+
+        /* --- BÀN CƯỢC CASINO --- */
+        .betting-table {
+            display: flex;
+            gap: 25px;
+            width: 55px;
+            width: 550px;
+            margin-top: 15px;
+            z-index: 5;
+        }
+        .bet-box {
+            flex: 1;
+            height: 160px;
+            background: rgba(10, 5, 18, 0.75);
+            border-radius: 24px;
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 10px;
+            box-sizing: border-box;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.9), 0 10px 20px rgba(0,0,0,0.5);
+            border: 2px solid rgba(255, 255, 255, 0.05);
+        }
+        .bet-box.xiu { border-color: var(--neon-blue); }
+        .bet-box.tai { border-color: var(--neon-red); }
+        
+        .side-title {
+            font-size: 36px;
+            font-weight: 950;
+            margin: 0;
+        }
+        .tai .side-title { color: #ff4d4d; }
+        .xiu .side-title { color: #4dadff; }
+
+        .side-total-bet {
+            font-size: 14px;
+            font-weight: bold;
+            color: #aaa;
+        }
+        .side-player-bet {
+            font-size: 12px;
+            color: #00ff88;
+            background: rgba(0,0,0,0.4);
+            padding: 4px 12px;
+            border-radius: 10px;
+        }
+
+        .bet-box.selected-target {
+            transform: translateY(-5px) scale(1.03);
+        }
+        .bet-box.xiu.selected-target { box-shadow: 0 0 25px rgba(0, 240, 255, 0.5); }
+        .bet-box.tai.selected-target { box-shadow: 0 0 25px rgba(255, 0, 85, 0.5); }
+
+        @keyframes goldPulse {
+            0%, 100% { border-color: #ffd700; filter: brightness(1); box-shadow: 0 0 20px #ffd700; }
+            50% { border-color: #fff; filter: brightness(1.3); box-shadow: 0 0 40px #ffd700; }
+        }
+        .bet-box.winning-flash {
+            animation: goldPulse 0.5s ease-in-out infinite;
+        }
+
+        /* CHIP CƯỢC PHÁT SÁNG */
+        .chip-container {
+            display: flex;
+            gap: 12px;
+            margin-top: 25px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 12px 20px;
+            border-radius: 40px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            z-index: 5;
+        }
+        .chip {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 11px;
+            font-weight: 900;
+            cursor: pointer;
+            border: 3px dashed rgba(255, 255, 255, 0.8);
+            transition: all 0.25s ease;
+        }
+        .chip:hover { transform: translateY(-5px) scale(1.1); }
+        .chip.selected {
+            transform: translateY(-12px) scale(1.15);
+            box-shadow: 0 0 20px #ffd700;
+            border-style: solid;
+        }
+        .chip[data-val="10k"] { background: #1c75bc; }
+        .chip[data-val="50k"] { background: #00a651; }
+        .chip[data-val="100k"] { background: #92278f; }
+        .chip[data-val="500k"] { background: #d11a1a; }
+        .chip[data-val="1M"] { background: #de9610; }
+
+        .win-notification {
+            position: absolute;
+            font-size: 24px;
+            font-weight: 900;
+            color: #ffd700;
+            text-shadow: 0 0 10px #ff6600;
+            animation: floatUp 2s forwards ease-out;
+            z-index: 100;
+        }
+        @keyframes floatUp {
+            0% { opacity: 0; transform: translateY(20px); }
+            20% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-60px); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- THÔNG TIN PHÂN TÍCH AI -->
+    <div class="analyzer-tool">
+        <span class="analyzer-title">AI VIP Predictor:</span>
+        <span class="analyzer-rate rate-tai" id="ai-tai">Tài 50%</span>
+        <span class="analyzer-rate rate-xiu" id="ai-xiu">Xỉu 50%</span>
+    </div>
+
+    <!-- THANH ĐIỀU HƯỚNG SỐ DƯ -->
+    <div class="top-navigation">
+        <div class="header-bar">
+            <span class="balance-label">Số Dư VIP:</span>
+            <span class="balance-amount" id="user-balance">100,000,000 đ</span>
+        </div>
+    </div>
+
+    <!-- LOGO HOÀNG GIA -->
+    <div class="casino-logo-container">
+        <div class="royal-crown"></div>
+        <div class="casino-logo">SIC BO PREMIUM</div>
+    </div>
+
+    <!-- SÂN KHẤU TRUNG TÂM -->
+    <div class="main-stage">
+        <div class="countdown-number" id="timer">26</div>
+        <div id="threejs-dice-container"></div>
+        <div class="status-text" id="status-display">Đang Chờ Đặt Cược</div>
+    </div>
+
+    <!-- BÀN CƯỢC -->
+    <div class="betting-table">
+        <div class="bet-box xiu" onclick="selectBetSide('xiu')">
+            <h2 class="side-title">XỈU</h2>
+            <span class="side-desc">4 - 10 (1 Ăn 1)</span>
+            <div class="side-total-bet">Tổng: <span id="total-bet-xiu">0</span>đ</div>
+            <div class="side-player-bet">Bạn cược: <span id="my-bet-xiu">0</span>đ</div>
+        </div>
+        <div class="bet-box tai" onclick="selectBetSide('tai')">
+            <h2 class="side-title">TÀI</h2>
+            <span class="side-desc">11 - 17 (1 Ăn 1)</span>
+            <div class="side-total-bet">Tổng: <span id="total-bet-tai">0</span>đ</div>
+            <div class="side-player-bet">Bạn cược: <span id="my-bet-tai">0</span>đ</div>
+        </div>
+    </div>
+
+    <!-- THANH CHIP CƯỢC -->
+    <div class="chip-container">
+        <div class="chip selected" data-val="10000" onclick="selectChip(this, 10000)">10K</div>
+        <div class="chip" data-val="50000" onclick="selectChip(this, 50000)">50K</div>
+        <div class="chip" data-val="100000" onclick="selectChip(this, 100000)">100K</div>
+        <div class="chip" data-val="500000" onclick="selectChip(this, 500000)">500K</div>
+        <div class="chip" data-val="1000000" onclick="selectChip(this, 1000000)">1M</div>
+    </div>
+
+    <!-- LOGIC ENGINE JAVASCRIPT -->
+    <script>
+        // Hệ thống Quản lý Số dư & Trạng thái Cược Phía Client
+        let userBalance = 100000000;
+        let currentSelectedChip = 10000;
+        let playerBets = { tai: 0, xiu: 0 };
+        let activeSide = null;
+
+        function selectChip(element, value) {
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+            element.classList.add('selected');
+            currentSelectedChip = value;
+        }
+
+        function selectBetSide(side) {
+            document.querySelectorAll('.bet-box').forEach(b => b.classList.remove('selected-target'));
+            const targetBox = document.querySelector(`.bet-box.${side}`);
+            targetBox.classList.add('selected-target');
+            
+            if (userBalance >= currentSelectedChip) {
+                userBalance -= currentSelectedChip;
+                playerBets[side] += currentSelectedChip;
+                document.getElementById('user-balance').innerText = userBalance.toLocaleString() + " đ";
+                document.getElementById(`my-bet-${side}`).innerText = playerBets[side].toLocaleString();
+            } else {
+                alert("Số dư VIP không đủ thực hiện lệnh cược này!");
+            }
+        }
+
+        // --- KHỞI TẠO KHÔNG GIAN 3D THREEJS CHO XÚC XẮC ---
+        let scene, camera, renderer, diceMeshes = [];
+        const container = document.getElementById('threejs-dice-container');
+
+        function init3DWorld() {
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            
+            scene = new THREE.Scene();
+            
+            camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+            camera.position.set(0, 0, 300);
+
+            renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(width, height);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.shadowMap.enabled = true;
+            container.appendChild(renderer.domElement);
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            const pointLight = new THREE.PointLight(0xffffff, 1.2, 500);
+            pointLight.position.set(50, 150, 100);
+            pointLight.castShadow = true;
+            scene.add(pointLight);
+            
+            const initialPositions = [
+                new THREE.Vector3(-45, 15, 0),
+                new THREE.Vector3(45, 15, 0),
+                new THREE.Vector3(0, -45, 10)
+            ];
+
+            for (let i = 0; i < 3; i++) {
+                const dice = createThreeJSDice();
+                dice.position.copy(initialPositions[i]);
+                scene.add(dice);
+                diceMeshes.push(dice);
+            }
+
+            animateEngine();
+        }
+
+        function createThreeJSDice() {
+            const size = 32;
+            const geometry = new THREE.BoxGeometry(size, size, size);
+            const materials = [];
+            const dotConfigs = [
+                [ [0.5, 0.5] ], // 1
+                [ [0.25, 0.25], [0.75, 0.75] ], // 2
+                [ [0.2, 0.2], [0.5, 0.5], [0.8, 0.8] ], // 3
+                [ [0.25, 0.25], [0.25, 0.75], [0.75, 0.25], [0.75, 0.75] ], // 4
+                [ [0.2, 0.2], [0.2, 0.8], [0.5, 0.5], [0.8, 0.2], [0.8, 0.8] ], // 5
+                [ [0.25, 0.2], [0.25, 0.5], [0.25, 0.8], [0.75, 0.2], [0.75, 0.5], [0.75, 0.8] ] // 6
+            ];
+
+            for (let f = 1; f <= 6; f++) {
+                const canvas = document.createElement('canvas');
+                canvas.width = 128;
+                canvas.height = 128;
+                const ctx = canvas.getContext('2d');
+
+                const grad = ctx.createRadialGradient(64, 64, 5, 64, 64, 90);
+                grad.addColorStop(0, '#ff3b3b');
+                grad.addColorStop(0.8, '#990000');
+                grad.addColorStop(1, '#4a0000');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, 128, 128);
+
+                ctx.strokeStyle = 'rgba(255, 215, 0, 0.3)';
+                ctx.lineWidth = 6;
+                ctx.strokeRect(3, 3, 122, 122);
+
+                ctx.fillStyle = (f === 1) ? '#ffcc00' : '#ffffff';
+                dotConfigs[f - 1].forEach(pos => {
+                    ctx.beginPath();
+                    ctx.arc(pos[0] * 128, pos[1] * 128, (f === 1) ? 18 : 10, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = 'rgba(0,0,0,0.6)';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                });
+
+                const texture = new THREE.CanvasTexture(canvas);
+                materials.push(new THREE.MeshPhongMaterial({ map: texture, shininess: 120 }));
+            }
+            return new THREE.Mesh(geometry, materials);
+        }
+
+        const targetRotations = {
+            1: { x: 0, y: 0, z: 0 },
+            2: { x: 0, y: -Math.PI / 2, z: 0 },
+            3: { x: -Math.PI / 2, y: 0, z: 0 },
+            4: { x: Math.PI / 2, y: 0, z: 0 },
+            5: { x: 0, y: Math.PI / 2, z: 0 },
+            6: { x: Math.PI, y: 0, z: 0 }
+        };
+
+        let isRolling3D = false;
+
+        function roll3DDice(results) {
+            isRolling3D = true;
+            let duration = 3000;
+            let startTime = Date.now();
+
+            function updatePhysics() {
+                let elapsed = Date.now() - startTime;
+                let progress = elapsed / duration;
+
+                if (progress < 1) {
+                    diceMeshes.forEach((dice, idx) => {
+                        dice.rotation.x += 0.35 + idx * 0.05;
+                        dice.rotation.y += 0.4 + idx * 0.05;
+                        dice.rotation.z += 0.25;
+                        dice.position.y += Math.sin(elapsed * 0.05 + idx) * 1.5;
+                    });
+                    requestAnimationFrame(updatePhysics);
+                } else {
+                    isRolling3D = false;
+                    diceMeshes.forEach((dice, idx) => {
+                        const face = results[idx];
+                        const target = targetRotations[face];
+                        dice.rotation.set(target.x, target.y, target.z);
+                        dice.position.y = (idx === 2) ? -45 : 15;
+                    });
+                    triggerWinLoseLogic(results);
+                }
+            }
+            updatePhysics();
+        }
+
+        function animateEngine() {
+            requestAnimationFrame(animateEngine);
+            renderer.render(scene, camera);
+        }
+
+        // Xử lý thắng thua & cộng tiền
+        function triggerWinLoseLogic(results) {
+            const sum = results.reduce((a, b) => a + b, 0);
+            const finalResult = (sum >= 11) ? 'tai' : 'xiu';
+
+            document.getElementById('status-display').innerText = `Kết quả: ${sum} - ${finalResult.toUpperCase()}`;
+            
+            const winningBox = document.querySelector(`.bet-box.${finalResult}`);
+            winningBox.classList.add('winning-flash');
+
+            let winAmount = playerBets[finalResult] * 2;
+            if (winAmount > 0) {
+                userBalance += winAmount;
+                document.getElementById('user-balance').innerText = userBalance.toLocaleString() + " đ";
+                
+                let winEl = document.createElement('div');
+                winEl.className = 'win-notification';
+                winEl.innerText = `+${winAmount.toLocaleString()}đ`;
+                winningBox.appendChild(winEl);
+            }
+        }
+
+        // --- KẾT NỐI WEBSOCKET REAL-TIME DỮ LIỆU ---
+        const ws = new WebSocket(window.WS_SERVER);
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            
+            if (data.event === "tick") {
+                document.getElementById('timer').innerText = data.timeLeft;
+                document.getElementById('total-bet-xiu').innerText = data.botBets.xiu.toLocaleString();
+                document.getElementById('total-bet-tai').innerText = data.botBets.tai.toLocaleString();
+                
+                // Giả lập cập nhật tỷ lệ AI VIP ngẫu nhiên theo luồng cược
+                let total = data.botBets.xiu + data.botBets.tai;
+                let taiRate = Math.round((data.botBets.tai / total) * 100);
+                document.getElementById('ai-tai').innerText = `Tài ${taiRate}%`;
+                document.getElementById('ai-xiu').innerText = `Xỉu ${100 - taiRate}%`;
+                
+                document.getElementById('status-display').innerText = "Vui Lòng Đặt Cược";
+            } 
+            else if (data.event === "roll") {
+                document.getElementById('timer').innerText = "0";
+                document.getElementById('status-display').innerText = "Hết Thời Gian - Đang Mở Bát...";
+                roll3DDice(data.dice);
+            } 
+            else if (data.event === "new_round") {
+                // Khởi động lại phiên mới, xóa sạch dữ liệu cũ
+                document.querySelectorAll('.bet-box').forEach(b => {
+                    b.classList.remove('winning-flash', 'selected-target');
+                    const notification = b.querySelector('.win-notification');
+                    if(notification) notification.remove();
+                });
+                playerBets = { tai: 0, xiu: 0 };
+                document.getElementById('my-bet-tai').innerText = "0";
+                document.getElementById('my-bet-xiu').innerText = "0";
+                document.getElementById('status-display').innerText = "Vòng Mới Bắt Đầu";
+            }
+        };
+
+        window.addEventListener('load', () => {
+            init3DWorld();
+        });
+    </script>
+</body>
+</html>
+
+      
+      
+      
