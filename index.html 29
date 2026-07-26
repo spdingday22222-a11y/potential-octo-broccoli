@@ -1,0 +1,1624 @@
+html
+
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Go88 - Cổng Game Bài Đổi Thưởng Premium 3D</title>
+    <style>
+        :root {
+            --gold-light: #fff5a6;
+            --gold-primary: #ffd700;
+            --gold-secondary: #d4af37;
+            --gold-dark: #6e4e00;
+            --bg-dark: #040201;
+            --red-glow: #ff2a2a;
+            --cyan-glow: #00ffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Canvas Hạt Sáng Nền */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Dynamic Responsive Scaling Engine Container (Ratio 16:9) */
+        .stage-wrapper {
+            position: relative;
+            z-index: 2;
+            width: 1120px;
+            height: 630px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 1200px; /* Góc nhìn 3D toàn cảnh sòng bài */
+            transform-origin: center center;
+        }
+
+        /* Khung Game Chính - Metallic Gold Border 3D Multi-Layer */
+        .game-container {
+            width: 1120px;
+            height: 630px;
+            background: radial-gradient(circle at 50% 25%, #3a200a 0%, #170a03 55%, #050201 100%);
+            border-radius: 24px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 16px 24px;
+            overflow: hidden;
+            
+            /* Viền Kim Loại 3D Đa Tầng */
+            border: 1px solid rgba(255, 245, 166, 0.8);
+            box-shadow: 
+                0 0 0 3px #8b620a,
+                0 0 0 6px #ffd700,
+                0 0 0 9px #4a3200,
+                0 0 40px rgba(0, 0, 0, 0.95),
+                0 25px 50px rgba(0, 0, 0, 0.9),
+                inset 0 0 35px rgba(0, 0, 0, 0.95),
+                0 0 60px rgba(255, 180, 0, 0.25);
+        }
+
+        /* Hiệu Ứng Phản Chiếu Mặt Sàn Sòng Bài (Casino Floor Reflection) */
+        .floor-reflection {
+            position: absolute;
+            bottom: -80px;
+            left: 5%;
+            width: 90%;
+            height: 160px;
+            background: radial-gradient(ellipse at center, rgba(255, 215, 0, 0.15) 0%, rgba(0,0,0,0) 70%);
+            transform: rotateX(75deg);
+            pointer-events: none;
+            filter: blur(8px);
+            z-index: 1;
+        }
+
+        /* Ánh Sáng Quét Qua Viền Kim Loại (Metallic Shimmer/Shine Effect) */
+        .shimmer-line {
+            position: absolute;
+            top: -50%; left: -100%;
+            width: 60%; height: 200%;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(255, 255, 255, 0.05) 30%, 
+                rgba(255, 255, 255, 0.45) 50%, 
+                rgba(255, 255, 255, 0.05) 70%, 
+                transparent 100%);
+            transform: rotate(30deg);
+            animation: shineSweep 5s infinite cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+            z-index: 15;
+        }
+
+        @keyframes shineSweep {
+            0% { left: -120%; }
+            30% { left: 180%; }
+            100% { left: 180%; }
+        }
+
+        /* Aura Chiếu Sáng Trung Tâm */
+        .game-container::before {
+            content: '';
+            position: absolute;
+            top: -15%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 850px;
+            height: 300px;
+            background: radial-gradient(ellipse, rgba(255, 215, 0, 0.18) 0%, rgba(0, 0, 0, 0) 70%);
+            pointer-events: none;
+            animation: pulseAura 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulseAura {
+            0% { opacity: 0.6; transform: translateX(-50%) scale(0.95); }
+            100% { opacity: 1; transform: translateX(-50%) scale(1.05); }
+        }
+
+        /* --- HEADER --- */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .logo-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.9));
+            transition: transform 0.25s ease;
+            position: relative;
+        }
+
+        .logo-box:hover { transform: scale(1.06); }
+
+        /* Tia Sáng Bạc Bọc Logo */
+        .logo-sparkle {
+            position: absolute;
+            top: -5px;
+            right: -10px;
+            width: 20px;
+            height: 20px;
+            animation: rotateSparkle 4s linear infinite;
+        }
+
+        @keyframes rotateSparkle {
+            0% { transform: rotate(0deg) scale(0.8); opacity: 0.5; }
+            50% { transform: rotate(180deg) scale(1.2); opacity: 1; }
+            100% { transform: rotate(360deg) scale(0.8); opacity: 0.5; }
+        }
+
+        .logo {
+            font-size: 40px;
+            font-weight: 900;
+            background: linear-gradient(180deg, #ffffff 0%, #fff2a3 25%, #ffd700 50%, #d48800 80%, #5e0000 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 3px;
+            font-style: italic;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.9));
+        }
+
+        .sub-logo {
+            font-size: 10px;
+            color: #ffe066;
+            background: linear-gradient(180deg, #2a1a08 0%, #000 100%);
+            border: 1px solid var(--gold-primary);
+            padding: 2px 12px;
+            border-radius: 10px;
+            margin-top: -6px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.9), inset 0 0 4px rgba(255,215,0,0.5);
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.65);
+            padding: 5px;
+            border-radius: 24px;
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            box-shadow: inset 0 0 12px rgba(0,0,0,0.9);
+        }
+
+        .tab-btn {
+            background: linear-gradient(180deg, #2d1d0e 0%, #120903 100%);
+            border: 1px solid #735712;
+            color: #d4af37;
+            padding: 8px 20px;
+            border-radius: 18px;
+            font-size: 11px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            text-shadow: 0 1px 3px #000;
+        }
+
+        .tab-btn:hover, .tab-btn.active {
+            background: linear-gradient(180deg, #ffffff 0%, #ffd700 40%, #b8860b 85%, #573a00 100%);
+            color: #0d0700;
+            text-shadow: none;
+            box-shadow: 0 0 16px rgba(255, 215, 0, 0.8);
+            border-color: #fff;
+        }
+
+        .announcement {
+            font-size: 11px;
+            color: #f0e0c0;
+            max-width: 250px;
+            text-align: right;
+            line-height: 1.35;
+            background: rgba(10, 6, 3, 0.85);
+            padding: 8px 14px;
+            border-radius: 10px;
+            border-right: 3px solid var(--gold-primary);
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.8);
+        }
+
+        /* --- GAME CAROUSEL SECTION (GÓC NHÌN PERSPECTIVE 3D) --- */
+        .game-list {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            padding: 10px 0;
+            z-index: 5;
+            transform-style: preserve-3d;
+        }
+
+        /* Card Khung Kim Loại 3D Thực Tế */
+        .card {
+            width: 200px;
+            height: 365px;
+            background: linear-gradient(180deg, rgba(48, 32, 18, 0.95) 0%, rgba(18, 10, 5, 0.98) 60%, rgba(4, 2, 1, 1) 100%);
+            border-radius: 20px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 10px 12px 10px;
+            cursor: pointer;
+            transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            overflow: hidden;
+
+            /* Viền Đa Tầng Metallic 3D Card */
+            border: 1px solid rgba(255, 230, 120, 0.9);
+            box-shadow: 
+                0 0 0 2px #7a580d,
+                0 0 0 3.5px #d4af37,
+                0 15px 30px rgba(0,0,0,0.95),
+                inset 0 1px 3px rgba(255,255,255,0.4),
+                inset 0 0 20px rgba(0,0,0,0.9);
+        }
+
+        .card:hover {
+            transform: translateY(-12px) translateZ(20px) scale(1.03);
+            border-color: #ffffff;
+            box-shadow: 
+                0 0 0 2px #ffd700,
+                0 0 0 4px #ffffff,
+                0 22px 40px rgba(255, 215, 0, 0.45), 
+                inset 0 0 25px rgba(255, 215, 0, 0.35);
+        }
+
+        /* Badge Mới Ra Mắt / HOT / LIVE Pure Graphic */
+        .badge {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(180deg, #ff4d4d 0%, #b30000 100%);
+            color: #fff;
+            font-size: 9px;
+            font-weight: 900;
+            padding: 3px 14px;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+            border: 1px solid #ffe066;
+            border-top: none;
+            text-transform: uppercase;
+            box-shadow: 0 4px 10px rgba(255, 0, 0, 0.7);
+            letter-spacing: 1px;
+            z-index: 6;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 900;
+            background: linear-gradient(180deg, #ffffff 0%, #ffd700 65%, #b8860b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+            margin-top: 10px;
+            line-height: 1.15;
+            filter: drop-shadow(0 2px 5px rgba(0,0,0,0.9));
+            text-transform: uppercase;
+        }
+
+        .card-title.red {
+            background: linear-gradient(180deg, #ffffff 0%, #ff5252 65%, #990000 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .card-title.cyan {
+            background: linear-gradient(180deg, #ffffff 0%, #00ffff 65%, #0077aa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Card Graphic Box chứa các Icon SVG Pure Graphic */
+        .card-graphic {
+            width: 100%;
+            height: 155px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .graphic-svg {
+            width: 125px;
+            height: 125px;
+            filter: drop-shadow(0 12px 18px rgba(0,0,0,0.95));
+            transition: transform 0.35s ease;
+        }
+
+        .card:hover .graphic-svg {
+            transform: scale(1.14) rotate(2deg);
+        }
+
+        /* Jackpot & Rates Display Box */
+        .jackpot-box {
+            background: radial-gradient(ellipse at center, #1f1408 0%, #000000 100%);
+            border: 1px solid #7a5e1c;
+            border-radius: 10px;
+            width: 100%;
+            padding: 8px 6px;
+            text-align: center;
+            box-shadow: inset 0 0 12px rgba(0,0,0,0.95), 0 2px 6px rgba(0,0,0,0.8);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .jackpot-val {
+            color: #00ffcc;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 13px;
+            text-shadow: 0 0 10px rgba(0, 255, 204, 0.9);
+            letter-spacing: 0.5px;
+        }
+
+        .tai-xiu-rates {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 0 2px;
+        }
+
+        .rate-tai { color: #ff3300; text-shadow: 0 0 8px rgba(255, 51, 0, 0.8); }
+        .rate-xiu { color: #00ffff; text-shadow: 0 0 8px rgba(0, 255, 255, 0.8); }
+
+        /* --- FOOTER BAR --- */
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 20px;
+            background: linear-gradient(180deg, rgba(28, 18, 10, 0.95) 0%, rgba(5, 3, 1, 0.98) 100%);
+            border: 1px solid rgba(212, 175, 55, 0.6);
+            border-radius: 16px;
+            z-index: 10;
+            box-shadow: 0 -6px 25px rgba(0,0,0,0.8), inset 0 1px 2px rgba(255,255,255,0.2);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .avatar-frame {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            border: 2px solid var(--gold-primary);
+            background: radial-gradient(circle, #333 0%, #000 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 0 14px rgba(255, 215, 0, 0.6);
+            overflow: hidden;
+        }
+
+        .avatar-frame svg {
+            width: 28px;
+            height: 28px;
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .username {
+            font-size: 12px;
+            color: #ddd;
+            font-weight: 700;
+        }
+
+        .balance {
+            font-size: 17px;
+            color: var(--gold-primary);
+            font-weight: 900;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+            font-family: 'Consolas', monospace;
+        }
+
+        .btn-deposit {
+            background: linear-gradient(180deg, #ffffff 0%, #ffd700 30%, #b8860b 85%, #4a3300 100%);
+            color: #000;
+            font-weight: 900;
+            font-size: 15px;
+            padding: 10px 28px;
+            border: 1px solid #fff;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 0 18px rgba(255, 215, 0, 0.7);
+            letter-spacing: 1px;
+            transition: all 0.25s ease;
+            text-transform: uppercase;
+        }
+
+        .btn-deposit:hover {
+            transform: scale(1.06);
+            box-shadow: 0 0 28px rgba(255, 215, 0, 1);
+        }
+
+        .footer-actions {
+            display: flex;
+            gap: 20px;
+        }
+
+        .action-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 10px;
+            color: #aaa;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            color: var(--gold-primary);
+            transform: translateY(-3px);
+        }
+
+        .action-icon-svg {
+            width: 22px;
+            height: 22px;
+            margin-bottom: 3px;
+            filter: drop-shadow(0 2px 5px rgba(0,0,0,0.9));
+        }
+
+        /* Floating Mini Game Trigger (Pure Glow Graphics) */
+        .mini-game-widget {
+            position: absolute;
+            right: 18px;
+            bottom: 78px;
+            width: 68px;
+            height: 68px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, #ff5252 0%, #b30000 70%, #3a0000 100%);
+            border: 2px solid #ffe066;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 0 22px rgba(255, 0, 0, 0.8), inset 0 0 12px rgba(255,255,255,0.5);
+            cursor: pointer;
+            z-index: 20;
+            animation: pulseWidget 2s infinite alternate;
+        }
+
+        @keyframes pulseWidget {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.08); box-shadow: 0 0 32px rgba(255, 0, 0, 1), inset 0 0 15px rgba(255,255,255,0.7); }
+        }
+
+        .mini-game-widget span {
+            font-size: 10px;
+            font-weight: 900;
+            color: #fff;
+            text-align: center;
+            line-height: 1.1;
+            text-shadow: 0 2px 4px #000;
+        }
+
+        /* Modal Dialog */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(8px);
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .modal-content {
+            background: linear-gradient(180deg, #2b1a0a 0%, #0d0804 100%);
+            border: 2px solid var(--gold-primary);
+            border-radius: 18px;
+            padding: 30px;
+            width: 340px;
+            text-align: center;
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.6);
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 12px; right: 16px;
+            color: #fff;
+            font-size: 22px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .close-btn:hover { color: var(--gold-primary); }
+    </style>
+</head>
+<body>
+
+    <!-- Canvas Particle Background -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Stage Wrapper for Scaling Engine (16:9) -->
+    <div class="stage-wrapper" id="stage">
+        <div class="floor-reflection"></div>
+        
+        <div class="game-container">
+            <div class="shimmer-line"></div>
+
+            <!-- --- HEADER --- -->
+            <header class="header">
+                <div class="logo-box">
+                    <!-- SVG Sparkle Tia Sáng Logo -->
+                    <svg class="logo-sparkle" viewBox="0 0 50 50">
+                        <path d="M25,0 L30,20 L50,25 L30,30 L25,50 L20,30 L0,25 L20,20 Z" fill="#ffffff"/>
+                    </svg>
+                    <div class="logo">GO88</div>
+                    <div class="sub-logo">TAIGO88.DE</div>
+                </div>
+
+                <nav class="nav-tabs">
+                    <button class="tab-btn active">ALL GAME</button>
+                    <button class="tab-btn">GAME BÀI</button>
+                    <button class="tab-btn">SLOTS</button>
+                    <button class="tab-btn">QUAY SỐ</button>
+                </nav>
+
+                <div class="announcement">
+                    Hệ thống bảo mật quốc tế. Trải nghiệm cổng game bài đổi thưởng đỉnh cao 2026.
+                </div>
+            </header>
+
+            <!-- --- GAME LIST (PURE GRAPHIC SVG 3D) --- -->
+            <main class="game-list">
+
+                <!-- Card 1: Xóc Đĩa Livestream -->
+                <div class="card" onclick="openModal('XÓC ĐĨA LIVESTREAM')">
+                    <div class="badge">Mới Ra Mắt</div>
+                    <div class="card-title">XÓC ĐĨA<br><small style="font-size:10px; color:#aaa;-webkit-text-fill-color:#aaa;">Livestream</small></div>
+                    <div class="card-graphic">
+                        <svg class="graphic-svg" viewBox="0 0 100 100">
+                            <defs>
+                                <radialGradient id="plateGrad3D" cx="40%" cy="30%" r="70%">
+                                    <stop offset="0%" stop-color="#ffffff"/>
+                                    <stop offset="50%" stop-color="#e6e6e6"/>
+                                    <stop offset="85%" stop-color="#888888"/>
+                                    <stop offset="100%" stop-color="#333333"/>
+                                </radialGradient>
+                                <radialGradient id="redChip3D" cx="35%" cy="35%" r="65%">
+                                    <stop offset="0%" stop-color="#ff8888"/>
+                                    <stop offset="40%" stop-color="#dd0000"/>
+                                    <stop offset="100%" stop-color="#550000"/>
+                                </radialGradient>
+                                <radialGradient id="bowlGrad3D" cx="30%" cy="20%" r="80%">
+                                    <stop offset="0%" stop-color="#ffe899"/>
+                                    <stop offset="50%" stop-color="#d4af37"/>
+                                    <stop offset="100%" stop-color="#543d03"/>
+                                </radialGradient>
+                            </defs>
+                            <!-- Plate Base & Shadow -->
+                            <ellipse cx="50" cy="72" rx="44" ry="18" fill="rgba(0,0,0,0.6)"/>
+                            <ellipse cx="50" cy="68" rx="44" ry="18" fill="url(#plateGrad3D)" stroke="#ffd700" stroke-width="1.5"/>
+                            <ellipse cx="50" cy="67" rx="36" ry="13" fill="#1a1a1a" opacity="0.15"/>
+                            
+                            <!-- 4 Chips Positioned 3D -->
+                            <ellipse cx="40" cy="66" rx="7" ry="4" fill="url(#redChip3D)" stroke="#fff" stroke-width="0.8"/>
+                            <ellipse cx="58" cy="64" rx="7" ry="4" fill="#ffffff" stroke="#999" stroke-width="0.8"/>
+                            <ellipse cx="48" cy="70" rx="7" ry="4" fill="url(#redChip3D)" stroke="#fff" stroke-width="0.8"/>
+                            <ellipse cx="54" cy="62" rx="7" ry="4" fill="#ffffff" stroke="#999" stroke-width="0.8"/>
+
+                            <!-- Metallic Bowl Top Dome -->
+                            <path d="M 18,52 C 18,22 82,22 82,52 C 70,58 30,58 18,52 Z" fill="url(#bowlGrad3D)" stroke="#fff" stroke-width="1"/>
+                            <ellipse cx="50" cy="24" rx="8" ry="4" fill="#ffe899" stroke="#b8860b" stroke-width="1"/>
+                        </svg>
+                    </div>
+                    <div class="jackpot-box">
+                        <div style="font-size:10px; color:#aaa;">Trực Tiếp</div>
+                        <div class="jackpot-val">ONLINE 1,842</div>
+                    </div>
+                </div>
+
+                <!-- Card 2: Kho Báu Tứ Linh -->
+                <div class="card" onclick="openModal('KHO BÁU TỨ LINH')">
+                    <div class="card-title">KHO BÁU<br>Tứ Linh</div>
+                    <div class="card-graphic">
+                        <svg class="graphic-svg" viewBox="0 0 100 100">
+                            <defs>
+                                <radialGradient id="dragonOrb" cx="35%" cy="35%" r="65%">
+                                    <stop offset="0%" stop-color="#ffffff"/>
+                                    <stop offset="30%" stop-color="#ffea75"/>
+                                    <stop offset="75%" stop-color="#ff6600"/>
+                                    <stop offset="100%" stop-color="#800000"/>
+                                </radialGradient>
+                                <filter id="glowDragon" x="-20%" y="-20%" width="140%" height="140%">
+                                    <feGaussianBlur stdDeviation="3" result="blur" />
+                                    <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+                                </filter>
+                            </defs>
+                            <!-- Dragon Glow Aura -->
+                            <circle cx="50" cy="50" r="32" fill="url(#dragonOrb)" filter="url(#glowDragon)"/>
+                            <!-- 3D Dragon Claw Ring Graphic -->
+                            <path d="M 20,50 Q 50,15 80,50 Q 50,85 20,50 Z" fill="none" stroke="#ffd700" stroke-width="3" opacity="0.7"/>
+                            <path d="M 50,15 L 56,32 L 44,32 Z" fill="#ffffff"/>
+                            <path d="M 50,85 L 56,68 L 44,68 Z" fill="#ffffff"/>
+                            <path d="M 15,50 L 32,44 L 32,56 Z" fill="#ffffff"/>
+                            <path d="M 85,50 L 68,44 L 68,56 Z" fill="#ffffff"/>
+                            <!-- Center Gem Light Rays -->
+                            <circle cx="50" cy="50" r="10" fill="#ffffff" opacity="0.9"/>
+                        </svg>
+                    </div>
+                    <div class="jackpot-box">
+                        <div class="jackpot-val" id="jackpot1">$ 25,541,283</div>
+                        <div class="jackpot-val" id="jackpot2" style="font-size:11px; color:#88dccf;">$ 517,552,830</div>
+                    </div>
+                </div>
+
+                <!-- Card 3: Tài Xỉu -->
+                <div class="card" onclick="openModal('TÀI XỈU CANH TÝ')">
+                    <div class="badge">HOT</div>
+                    <div class="card-title red">TÀI XỈU</div>
+                    <div class="card-graphic">
+                        <svg class="graphic-svg" viewBox="0 0 100 100">
+                            <defs>
+                                <linearGradient id="diceFace" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#ffffff"/>
+                                    <stop offset="100%" stop-color="#d9d9d9"/>
+                                </linearGradient>
+                            </defs>
+                            <!-- 3D Isometric Dice 1 (Red Point) -->
+                            <g transform="translate(14, 18) rotate(-10)">
+                                <rect x="0" y="0" width="40" height="40" rx="8" fill="url(#diceFace)" stroke="#b3b3b3" stroke-width="1.5"/>
+                                <circle cx="20" cy="20" r="6" fill="#cc0000"/>
+                                <circle cx="10" cy="10" r="3.5" fill="#222"/>
+                                <circle cx="30" cy="30" r="3.5" fill="#222"/>
+                            </g>
+                            <!-- 3D Isometric Dice 2 (4 Red Points) -->
+                            <g transform="translate(44, 38) rotate(15)">
+                                <rect x="0" y="0" width="42" height="42" rx="8" fill="url(#diceFace)" stroke="#b3b3b3" stroke-width="1.5"/>
+                                <circle cx="12" cy="12" r="4" fill="#cc0000"/>
+                                <circle cx="30" cy="12" r="4" fill="#cc0000"/>
+                                <circle cx="12" cy="30" r="4" fill="#cc0000"/>
+                                <circle cx="30" cy="30" r="4" fill="#cc0000"/>
+                            </g>
+                        </svg>
+                    </div>
+                    <div class="jackpot-box">
+                        <div class="tai-xiu-rates">
+                            <span class="rate-tai">TÀI</span>
+                            <span style="color:#fff;" id="tai-val">$ 394,476</span>
+                            <span class="rate-xiu">XỈU</span>
+                        </div>
+                        <div class="jackpot-val" id="jackpot3" style="margin-top:4px; font-size:14px; color:#ffd700;">
+                            $ 658,389,138
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 4: Tài Xỉu MD5 -->
+                <div class="card" onclick="openModal('TÀI XỈU MD5')">
+                    <div class="card-title cyan">TÀI XỈU MD5</div>
+                    <div class="card-graphic">
+                        <svg class="graphic-svg" viewBox="0 0 100 100">
+                            <defs>
+                                <radialGradient id="gemCyan" cx="30%" cy="30%" r="70%">
+                                    <stop offset="0%" stop-color="#ffffff"/>
+                                    <stop offset="40%" stop-color="#00ffff"/>
+                                    <stop offset="80%" stop-color="#0088cc"/>
+                                    <stop offset="100%" stop-color="#003355"/>
+                                </radialGradient>
+                            </defs>
+                            <!-- Glowing Crystal Gem 3D -->
+                            <polygon points="50,10 85,32 85,68 50,90 15,68 15,32" fill="rgba(0, 255, 255, 0.15)" stroke="#00ffff" stroke-width="2"/>
+                            <polygon points="50,10 85,32 50,50 15,32" fill="url(#gemCyan)" opacity="0.8"/>
+                            <polygon points="50,50 85,32 85,68 50,90" fill="url(#gemCyan)"/>
+                            <polygon points="50,50 15,32 15,68 50,90" fill="#005580"/>
+                            <line x1="50" y1="10" x2="50" y2="90" stroke="#ffffff" stroke-width="1" opacity="0.6"/>
+                        </svg>
+                    </div>
+                    <div class="jackpot-box">
+                        <div class="jackpot-val" style="color:#ff3300;">$ 845,553,449</div>
+                        <div class="jackpot-val" style="color:#00ffff;">$ 481,507,511</div>
+                    </div>
+                </div>
+
+                <!-- Card 5: Livestream Tài Xỉu -->
+                <div class="card" onclick="openModal('TÀI XỈU LIVESTREAM')">
+                    <div class="badge">LIVE</div>
+                    <div class="card-title">TÀI XỈU<br><small style="font-size:10px; color:#aaa;-webkit-text-fill-color:#aaa;">Livestream</small></div>
+                    <div class="card-graphic">
+                        <svg class="graphic-svg" viewBox="0 0 100 100">
+                            <defs>
+                                <linearGradient id="camBody" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#ffd700"/>
+                                    <stop offset="100%" stop-color="#996600"/>
+                                </linearGradient>
+                            </defs>
+                            <!-- Studio 3D Camera Icon Graphics -->
+                            <rect x="12" y="28" width="54" height="44" rx="8" fill="url(#camBody)" stroke="#fff" stroke-width="1.5"/>
+                            <polygon points="66,38 90,26 90,74 66,62" fill="#d4af37" stroke="#fff" stroke-width="1"/>
+                            <circle cx="39" cy="50" r="14" fill="#111" stroke="#fff" stroke-width="2"/>
+                            <circle cx="39" cy="50" r="6" fill="#ff0000"/>
+                            <!-- Rec Dot Pulse -->
+                            <circle cx="22" cy="38" r="3" fill="#ff0000"/>
+                        </svg>
+                    </div>
+                    <div class="jackpot-box">
+                        <div class="jackpot-val" style="color:#ffae00;">BÀN VIP 56</div>
+                    </div>
+                </div>
+
+            </main>
+
+            <!-- Floating Mini Game Widget -->
+            <div class="mini-game-widget" onclick="openModal('MINI GAME')">
+                <span>MINI<br>GAME</span>
+            </div>
+
+            <!-- --- FOOTER BAR --- -->
+            <footer class="footer">
+                <div class="user-info">
+                    <div class="avatar-frame">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#ffd700" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                    </div>
+                    <div class="user-details">
+                        <span class="username">taixiulollII</span>
+                        <span class="balance" id="user-balance">$ 298,000</span>
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:14px; align-items:center;">
+                    <div class="action-btn" onclick="openModal('RÚT TIỀN')">
+                        <!-- SVG Rút Tiền / Card -->
+                        <svg class="action-icon-svg" viewBox="0 0 24 24" fill="none" stroke="#ffd700" stroke-width="2">
+                            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                            <line x1="1" y1="10" x2="23" y2="10"/>
+                        </svg>
+                        <span>RÚT TIỀN</span>
+                    </div>
+                    <button class="btn-deposit" onclick="openModal('NẠP TIỀN')">NẠP TIỀN</button>
+                </div>
+
+                <div class="footer-actions">
+                    <div class="action-btn">
+                        <!-- SVG Cúp Sẵn Hũ -->
+                        <svg class="action-icon-svg" viewBox="0 0 24 24" fill="none" stroke="#ffd700" stroke-width="2">
+                            <path d="M6 9H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h2"/>
+                            <path d="M18 9h2a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2"/>
+                            <path d="M4 22h16"/>
+                            <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
+                            <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
+                            <path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/>
+                        </svg>
+                        <span>SẴN HŨ</span>
+                    </div>
+                    <div class="action-btn">
+                        <!-- SVG Hộp Quà Nhiệm Vụ -->
+                        <svg class="action-icon-svg" viewBox="0 0 24 24" fill="none" stroke="#ffd700" stroke-width="2">
+                            <polyline points="20 12 20 22 4 22 4 12"/>
+                            <rect x="2" y="7" width="20" height="5"/>
+                            <line x1="12" y1="22" x2="12" y2="7"/>
+                            <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/>
+                            <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
+                        </svg>
+                        <span>NHIỆM VỤ</span>
+                    </div>
+                    <div class="action-btn">
+                        <!-- SVG Menu -->
+                        <svg class="action-icon-svg" viewBox="0 0 24 24" fill="none" stroke="#ffd700" stroke-width="2">
+                            <line x1="3" y1="12" x2="21" y2="12"/>
+                            <line x1="3" y1="6" x2="21" y2="6"/>
+                            <line x1="3" y1="18" x2="21" y2="18"/>
+                        </svg>
+                        <span>MENU</span>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Dynamic Modal Dialog -->
+    <div class="modal" id="gameModal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h3 id="modalTitle" style="color:#ffd700; margin-bottom:15px; font-size: 18px;">MỤC GAME</h3>
+            <p style="font-size:13px; color:#ccc; margin-bottom:20px;">Đang kết nối tới máy chủ bàn chơi...</p>
+            <button class="tab-btn active" style="width:100%;" onclick="closeModal()">ĐÓNG</button>
+        </div>
+    </div>
+
+    <script>
+        function id(name) { return document.getElementById(name); }
+
+        // --- DYNAMIC RESPONSIVE AUTO-SCALING ENGINE (Tỉ lệ chuẩn 16:9) ---
+        function scaleStage() {
+            const stage = id('stage');
+            const targetWidth = 1120;
+            const targetHeight = 630;
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+
+            const scaleX = windowWidth / targetWidth;
+            const scaleY = windowHeight / targetHeight;
+            const scale = Math.min(scaleX, scaleY) * 0.96; // Giữ lề 96% màn hình
+
+            stage.style.transform = `scale(${scale})`;
+        }
+        window.addEventListener('resize', scaleStage);
+        scaleStage();
+
+        // --- BACKGROUND PARTICLES CANVAS ---
+        const canvas = id('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor() { this.reset(); }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2.5 + 0.8;
+                this.speedX = (Math.random() - 0.5) * 0.4;
+                this.speedY = (Math.random() - 0.5) * 0.4;
+                this.opacity = Math.random() * 0.7 + 0.2;
+                this.color = Math.random() > 0.4 ? '#ffd700' : '#ff9900';
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
+                    this.reset();
+                }
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.opacity;
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < 75; i++) particles.push(new Particle());
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+
+        // --- DYNAMIC JACKPOT TICKER ---
+        function animateValue(idName, duration) {
+            setInterval(() => {
+                let obj = id(idName);
+                if(!obj) return;
+                let current = parseInt(obj.innerText.replace(/[^0-9]/g, ''));
+                let increment = Math.floor(Math.random() * 60000) + 15000;
+                let target = current + increment;
+                obj.innerText = "$ " + target.toLocaleString('en-US');
+            }, duration);
+        }
+
+        animateValue('jackpot1', 2200);
+        animateValue('jackpot3', 1800);
+        animateValue('tai-val', 1400);
+
+        // --- MODAL CONTROLLER ---
+        function openModal(title) {
+            id('modalTitle').innerText = title;
+            id('gameModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            id('gameModal').style.display = 'none';
+        }
+
+        // --- TAB SELECTION TOGGLE ---
+        const tabs = document.querySelectorAll('.tab-btn');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
+
+
+
+2.javascpt.js
+
+
+
+document.addEventListener("DOMContentLoaded", () => {
+    // 1. Particle Background System
+    const canvas = document.getElementById('bg-canvas');
+    if (canvas) {
+        const ctx = canvas.getContext('2d');
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        });
+
+        const particles = Array.from({ length: 60 }, () => ({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            size: Math.random() * 2.5 + 0.5,
+            speedY: - (Math.random() * 0.8 + 0.2),
+            speedX: (Math.random() - 0.5) * 0.3,
+            opacity: Math.random() * 0.7 + 0.3
+        }));
+
+        function renderParticles() {
+            ctx.clearRect(0, 0, width, height);
+            particles.forEach(p => {
+                p.y += p.speedY;
+                p.x += p.speedX;
+
+                if (p.y < 0) {
+                    p.y = height;
+                    p.x = Math.random() * width;
+                }
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 215, 0, ${p.opacity})`;
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = "#ffd700";
+                ctx.fill();
+            });
+            requestAnimationFrame(renderParticles);
+        }
+        renderParticles();
+    }
+
+    // 2. Interactive 3D Parallax Tilt Effect
+    const stage = document.getElementById('stage');
+    const container = document.querySelector('.game-container');
+
+    if (stage && container) {
+        stage.addEventListener('mousemove', (e) => {
+            const rect = stage.getBoundingClientRect();
+            const x = e.clientX - rect.left - rect.width / 2;
+            const y = e.clientY - rect.top - rect.height / 2;
+
+            const rotateX = (-y / rect.height) * 12; // Tilt góc X
+            const rotateY = (x / rect.width) * 12;  // Tilt góc Y
+
+            container.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        });
+
+        stage.addEventListener('mouseleave', () => {
+            container.style.transform = `rotateX(0deg) rotateY(0deg)`;
+        });
+    }
+
+    // 3. Real-Time Dynamic Jackpot Counter
+    function animateJackpot(id, baseValue) {
+        const el = document.getElementById(id);
+        if (!el) return;
+
+        setInterval(() => {
+            baseValue += Math.floor(Math.random() * 150) + 10;
+            el.innerText = "$ " + baseValue.toLocaleString('en-US');
+        }, 2000);
+    }
+
+    animateJackpot('jackpot1', 25541283);
+    animateJackpot('jackpot2', 517552830);
+    animateJackpot('jackpot3', 658389138);
+});
+
+// Modal Controller Functions
+function openModal(title) {
+    const modal = document.getElementById('gameModal');
+    const modalTitle = document.getElementById('modalTitle');
+    if (modal && modalTitle) {
+        modalTitle.innerText = title;
+        modal.style.display = 'flex';
+    }
+}
+
+function closeModal() {
+    const modal = document.getElementById('gameModal');
+    if (modal) modal.style.display = 'none';
+}
+
+
+
+
+
+3.style.css
+
+
+
+
+
+:root {
+    --gold-light: #fff5a6;
+    --gold-primary: #ffd700;
+    --gold-secondary: #d4af37;
+    --gold-dark: #6e4e00;
+    --bg-dark: #040201;
+    --red-glow: #ff2a2a;
+    --cyan-glow: #00ffff;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+    user-select: none;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Canvas Hạt Sáng Nền */
+#bg-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* Dynamic Responsive Scaling Engine Container */
+.stage-wrapper {
+    position: relative;
+    z-index: 2;
+    width: 1120px;
+    height: 630px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    perspective: 1200px;
+    transform-origin: center center;
+}
+
+/* Khung Game Chính - Metallic Gold Border 3D */
+.game-container {
+    width: 1120px;
+    height: 630px;
+    background: radial-gradient(circle at 50% 25%, #3a200a 0%, #170a03 55%, #050201 100%);
+    border-radius: 24px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 16px 24px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 245, 166, 0.8);
+    box-shadow: 
+        0 0 0 3px #8b620a,
+        0 0 0 6px #ffd700,
+        0 0 0 9px #4a3200,
+        0 0 40px rgba(0, 0, 0, 0.95),
+        0 25px 50px rgba(0, 0, 0, 0.9),
+        inset 0 0 35px rgba(0, 0, 0, 0.95),
+        0 0 60px rgba(255, 180, 0, 0.25);
+    transition: transform 0.1s linear;
+    transform-style: preserve-3d;
+}
+
+/* Hiệu Ứng Phản Chiếu Mặt Sàn */
+.floor-reflection {
+    position: absolute;
+    bottom: -80px;
+    left: 5%;
+    width: 90%;
+    height: 160px;
+    background: radial-gradient(ellipse at center, rgba(255, 215, 0, 0.15) 0%, rgba(0,0,0,0) 70%);
+    transform: rotateX(75deg);
+    pointer-events: none;
+    filter: blur(8px);
+    z-index: 1;
+}
+
+/* Ánh Sáng Quét Qua Viền Kim Loại */
+.shimmer-line {
+    position: absolute;
+    top: -50%; left: -100%;
+    width: 60%; height: 200%;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(255, 255, 255, 0.05) 30%, 
+        rgba(255, 255, 255, 0.45) 50%, 
+        rgba(255, 255, 255, 0.05) 70%, 
+        transparent 100%);
+    transform: rotate(30deg);
+    animation: shineSweep 5s infinite cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+    z-index: 15;
+}
+
+@keyframes shineSweep {
+    0% { left: -120%; }
+    30% { left: 180%; }
+    100% { left: 180%; }
+}
+
+/* HEADER */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 10;
+    transform: translateZ(30px);
+}
+
+.logo-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.9));
+    transition: transform 0.25s ease;
+    position: relative;
+}
+
+.logo-box:hover { transform: scale(1.06) translateZ(10px); }
+
+.logo {
+    font-size: 40px;
+    font-weight: 900;
+    background: linear-gradient(180deg, #ffffff 0%, #fff2a3 25%, #ffd700 50%, #d48800 80%, #5e0000 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 3px;
+    font-style: italic;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.9));
+}
+
+.sub-logo {
+    font-size: 10px;
+    color: #ffe066;
+    background: linear-gradient(180deg, #2a1a08 0%, #000 100%);
+    border: 1px solid var(--gold-primary);
+    padding: 2px 12px;
+    border-radius: 10px;
+    margin-top: -6px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.9), inset 0 0 4px rgba(255,215,0,0.5);
+}
+
+.nav-tabs {
+    display: flex;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.65);
+    padding: 5px;
+    border-radius: 24px;
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    box-shadow: inset 0 0 12px rgba(0,0,0,0.9);
+}
+
+.tab-btn {
+    background: linear-gradient(180deg, #2d1d0e 0%, #120903 100%);
+    border: 1px solid #735712;
+    color: #d4af37;
+    padding: 8px 20px;
+    border-radius: 18px;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.tab-btn:hover, .tab-btn.active {
+    background: linear-gradient(180deg, #ffffff 0%, #ffd700 40%, #b8860b 85%, #573a00 100%);
+    color: #0d0700;
+    box-shadow: 0 0 16px rgba(255, 215, 0, 0.8);
+    border-color: #fff;
+}
+
+.announcement {
+    font-size: 11px;
+    color: #f0e0c0;
+    max-width: 250px;
+    text-align: right;
+    line-height: 1.35;
+    background: rgba(10, 6, 3, 0.85);
+    padding: 8px 14px;
+    border-radius: 10px;
+    border-right: 3px solid var(--gold-primary);
+}
+
+/* GAME CAROUSEL SECTION (3D CARDS) */
+.game-list {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 0;
+    z-index: 5;
+    transform-style: preserve-3d;
+}
+
+.card {
+    width: 200px;
+    height: 365px;
+    background: linear-gradient(180deg, rgba(48, 32, 18, 0.95) 0%, rgba(18, 10, 5, 0.98) 60%, rgba(4, 2, 1, 1) 100%);
+    border-radius: 20px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 10px 12px 10px;
+    cursor: pointer;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
+    overflow: hidden;
+    border: 1px solid rgba(255, 230, 120, 0.9);
+    box-shadow: 
+        0 0 0 2px #7a580d,
+        0 0 0 3.5px #d4af37,
+        0 15px 30px rgba(0,0,0,0.95),
+        inset 0 1px 3px rgba(255,255,255,0.4),
+        inset 0 0 20px rgba(0,0,0,0.9);
+    transform-style: preserve-3d;
+}
+
+.card:hover {
+    transform: translateY(-12px) translateZ(40px) scale(1.04);
+    border-color: #ffffff;
+    box-shadow: 
+        0 0 0 2px #ffd700,
+        0 0 0 4px #ffffff,
+        0 22px 40px rgba(255, 215, 0, 0.45), 
+        inset 0 0 25px rgba(255, 215, 0, 0.35);
+}
+
+.card-graphic {
+    width: 100%;
+    height: 155px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    transform: translateZ(20px);
+}
+
+.graphic-svg {
+    width: 125px;
+    height: 125px;
+    filter: drop-shadow(0 12px 18px rgba(0,0,0,0.95));
+    transition: transform 0.35s ease;
+}
+
+.card:hover .graphic-svg {
+    transform: scale(1.15) rotate(3deg) translateZ(10px);
+}
+
+/* Jackpot Display */
+.jackpot-box {
+    background: radial-gradient(ellipse at center, #1f1408 0%, #000000 100%);
+    border: 1px solid #7a5e1c;
+    border-radius: 10px;
+    width: 100%;
+    padding: 8px 6px;
+    text-align: center;
+    transform: translateZ(15px);
+}
+
+.jackpot-val {
+    color: #00ffcc;
+    font-family: 'Consolas', monospace;
+    font-weight: bold;
+    font-size: 13px;
+    text-shadow: 0 0 10px rgba(0, 255, 204, 0.9);
+}
+
+/* FOOTER */
+.footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 20px;
+    background: linear-gradient(180deg, rgba(28, 18, 10, 0.95) 0%, rgba(5, 3, 1, 0.98) 100%);
+    border: 1px solid rgba(212, 175, 55, 0.6);
+    border-radius: 16px;
+    z-index: 10;
+    transform: translateZ(25px);
+}
+
+
+
+
+
+  4.index.php
+
+
+<?php
+$pageTitle = "Go88 - Cổng Game Bài Đổi Thưởng Premium 3D";
+$username = "VIP_Player_888";
+$userBalance = 152840000;
+?>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?php echo htmlspecialchars($pageTitle); ?></title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,700;0,900;1,900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Canvas Hạt Sáng Kim Cương Nền -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Khung 3D Stage Wrapper -->
+    <div class="stage-wrapper" id="stage">
+        <!-- Phản Chiếu Sàn 3D -->
+        <div class="floor-reflection"></div>
+        
+        <div class="game-container">
+            <!-- Vệt Sáng Quét Kim Loại -->
+            <div class="shimmer-line"></div>
+
+            <!-- HEADER -->
+            <header class="header">
+                <div class="logo-box" onclick="location.reload()">
+                    <div class="logo">GO88</div>
+                    <div class="sub-logo">TAIGO88.DE</div>
+                </div>
+
+                <nav class="nav-tabs">
+                    <button class="tab-btn active">ALL GAME</button>
+                    <button class="tab-btn">GAME BÀI</button>
+                    <button class="tab-btn">SLOTS</button>
+                    <button class="tab-btn">QUAY SỐ</button>
+                </nav>
+
+                <div class="announcement">
+                    Cổng Game Bài Đổi Thưởng Quốc Tế. Nạp rút tự động 1:1 bảo mật tuyệt đối <?php echo date("Y"); ?>.
+                </div>
+            </header>
+
+            <!-- GAME CAROUSEL SECTION -->
+            <main class="game-list">
+
+                <!-- CARD 1: XÓC ĐĨA -->
+                <div class="card" onclick="openModal('XÓC ĐĨA LIVESTREAM')">
+                    <div class="badge">LIVESTREAM</div>
+                    <div class="card-title">XÓC ĐĨA<br><small class="sub-text">Trực Tiếp</small></div>
+                    
+                    <div class="card-graphic">
+                        <svg class="graphic-svg" viewBox="0 0 120 120">
+                            <defs>
+                                <radialGradient id="plateGrad" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#ffffff"/>
+                                    <stop offset="70%" stop-color="#e0e0e0"/>
+                                    <stop offset="100%" stop-color="#999999"/>
+                                </radialGradient>
+                                <radialGradient id="bowlGrad" cx="30%" cy="30%" r="70%">
+                                    <stop offset="0%" stop-color="#ffd700"/>
+                                    <stop offset="50%" stop-color="#b8860b"/>
+                                    <stop offset="100%" stop-color="#3d2300"/>
+                                </radialGradient>
+                                <filter id="glow3d">
+                                    <feDropShadow dx="0" dy="6" stdDeviation="4" flood-color="#000" flood-opacity="0.8"/>
+                                </filter>
+                            </defs>
+                            <!-- Đĩa White Ceramic -->
+                            <ellipse cx="60" cy="75" rx="50" ry="25" fill="url(#plateGrad)" filter="url(#glow3d)"/>
+                            <ellipse cx="60" cy="73" rx="42" ry="20" fill="#f5f5f5" stroke="#ccc" stroke-width="1"/>
+                            <!-- Bát Úp Mạ Vàng 3D -->
+                            <path d="M 22,68 C 22,30 98,30 98,68 Z" fill="url(#bowlGrad)" filter="url(#glow3d)"/>
+                            <ellipse cx="60" cy="68" rx="38" ry="8" fill="#d4af37" opacity="0.8"/>
+                            <circle cx="60" cy="35" r="7" fill="#ffe066" filter="url(#glow3d)"/>
+                            <!-- Viền Đỏ Sàn Live -->
+                            <circle cx="60" cy="35" r="3" fill="#ff0000"/>
+                        </svg>
+                    </div>
+
+                    <div class="jackpot-box">
+                        <div class="jackpot-label">BÀN HOẠT ĐỘNG</div>
+                        <div class="jackpot-val" style="color: #00ffcc;">ONLINE 2,842</div>
+                    </div>
+                </div>
+
+                <!-- CARD 2: KHO BÁU TỨ LINH -->
+                <div class="card" onclick="openModal('KHO BÁU TỨ LINH')">
+                    <div class="badge">NỔ HŨ LỚN</div>
+                    <div class="card-title">KHO BÁU<br><small class="sub-text">Tứ Linh</small></div>
+                    
+                    <div class="card-graphic">
+                        <svg class="graphic-svg" viewBox="0 0 120 120">
+                            <defs>
+                                <radialGradient id="dragonOrb" cx="40%" cy="40%" r="60%">
+                                    <stop offset="0%" stop-color="#fff5a6"/>
+                                    <stop offset="30%" stop-color="#ff9900"/>
+                                    <stop offset="70%" stop-color="#cc0000"/>
+                                    <stop offset="100%" stop-color="#3a0000"/>
+                                </radialGradient>
+                                <linearGradient id="goldCoin" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#fff"/>
+                                    <stop offset="50%" stop-color="#ffd700"/>
+                                    <stop offset="100%" stop-color="#8a6d00"/>
+                                </linearGradient>
+                            </defs>
+                            <!-- Ngọc Tứ Linh -->
+                            <circle cx="60" cy="55" r="38" fill="url(#dragonOrb)" filter="url(#glow3d)"/>
+                            <!-- Đồng Tiền Vàng Bay Tỏa Ra -->
+                            <circle cx="35" cy="85" r="14" fill="url(#goldCoin)" filter="url(#glow3d)"/>
+                            <rect x="30" y="80" width="10" height="10" fill="#8a6d00" rx="1"/>
+                            
+                            <circle cx="85" cy="80" r="12" fill="url(#goldCoin)" filter="url(#glow3d)"/>
+                            <rect x="81" y="76" width="8" height="8" fill="#8a6d00" rx="1"/>
+                            <!-- Hiệu Ứng Rồng Đỏ Tỏa Sáng -->
+                            <path d="M 60,20 Q 75,35 60,50 Q 45,35 60,20 Z" fill="#ffe066" opacity="0.9"/>
+                        </svg>
+                    </div>
+
+                    <div class="jackpot-box">
+                        <div class="jackpot-label">GRAND JACKPOT</div>
+                        <div class="jackpot-val" id="jackpot1">$ 517,552,830</div>
+                    </div>
+                </div>
+
+                <!-- CARD 3: TÀI XỈU -->
+                <div class="card" onclick="openModal('TÀI XỈU MINI')">
+                    <div class="badge" style="background: linear-gradient(180deg, #ff4d4d, #990000);">HOT nhất</div>
+                    <div class="card-title">TÀI XỈU<br><small class="sub-text">Cân Cửa 1s</small></div>
+                    
+                    <div class="card-graphic">
+                        <svg class="graphic-svg" viewBox="0 0 120 120">
+                            <defs>
+                                <linearGradient id="diceGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#ffffff"/>
+                                    <stop offset="80%" stop-color="#e6e6e6"/>
+                                    <stop offset="100%" stop-color="#b3b3b3"/>
+                                </linearGradient>
+                            </defs>
+                            <!-- Xúc Xắc 1 (Tài) -->
+                            <g transform="translate(20,25) rotate(-12)">
+                                <rect x="0" y="0" width="46" height="46" rx="8" fill="url(#diceGrad)" stroke="#cccccc" stroke-width="1" filter="url(#glow3d)"/>
+                                <circle cx="23" cy="23" r="7" fill="#cc0000"/> <!-- Chấm Đỏ 1 -->
+                            </g>
+                            <!-- Xúc Xắc 2 (Xỉu) -->
+                            <g transform="translate(55,42) rotate(18)">
+                                <rect x="0" y="0" width="44" height="44" rx="8" fill="url(#diceGrad)" stroke="#cccccc" stroke-width="1" filter="url(#glow3d)"/>
+                                <circle cx="12" cy="12" r="4" fill="#111"/>
+                                <circle cx="32" cy="32" r="4" fill="#111"/>
+                                <circle cx="22" cy="22" r="4" fill="#111"/>
+                            </g>
+                        </svg>
+                    </div>
+
+                    <div class="jackpot-box">
+                        <div class="jackpot-label">HŨ TÀI XỈU</div>
+                        <div class="jackpot-val" id="jackpot2">$ 658,389,138</div>
+                    </div>
+                </div>
+
+                <!-- CARD 4: MẬU BÌNH -->
+                <div class="card" onclick="openModal('MẬU BÌNH XẰM')">
+                    <div class="card-title">MẬU BÌNH<br><small class="sub-text">Game Bài 3D</small></div>
+                    
+                    <div class="card-graphic">
+                        <svg class="graphic-svg" viewBox="0 0 120 120">
+                            <!-- Lá Bài Ách Bích -->
+                            <g transform="translate(25,20) rotate(-10)">
+                                <rect x="0" y="0" width="45" height="65" rx="5" fill="#fff" stroke="#ddd" filter="url(#glow3d)"/>
+                                <text x="6" y="16" font-size="14" font-weight="bold" fill="#000">A</text>
+                                <path d="M 22,28 C 15,38 30,48 22,54 C 14,48 29,38 22,28 Z" fill="#000"/>
+                            </g>
+                            <!-- Lá Bài Ách Rô -->
+                            <g transform="translate(50,25) rotate(10)">
+                                <rect x="0" y="0" width="45" height="65" rx="5" fill="#fff" stroke="#ddd" filter="url(#glow3d)"/>
+                                <text x="6" y="16" font-size="14" font-weight="bold" fill="#cc0000">A</text>
+                                <polygon points="22,30 30,40 22,50 14,40" fill="#cc0000"/>
+                            </g>
+                        </svg>
+                    </div>
+
+                    <div class="jackpot-box">
+                        <div class="jackpot-label">THƯỞNG CHI</div>
+                        <div class="jackpot-val" style="color:#ffcc00;">X100 HUỲNH HỮU</div>
+                    </div>
+                </div>
+
+            </main>
+
+            <!-- FOOTER TOOLBAR -->
+            <footer class="footer">
+                <div class="user-info">
+                    <div class="avatar-frame">
+                        <svg viewBox="0 0 24 24" fill="#ffd700" width="26" height="26">
+                            <path d="M12 2a5 5 0 105 5 5 5 0 00-5-5zm0 14c-5.33 0-8 2.67-8 4v2h16v-2c0-1.33-2.67-4-8-4z"/>
+                        </svg>
+                    </div>
+                    <div class="user-details">
+                        <span class="username"><?php echo htmlspecialchars($username); ?></span>
+                        <span class="balance"><?php echo number_format($userBalance, 0, ',', '.'); ?> đ</span>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn-deposit" onclick="openModal('NẠP TIỀN SIÊU TỐC')">NẠP TIỀN</button>
+                    <button class="btn-withdraw" onclick="openModal('RÚT TIỀN TỰ ĐỘNG')">RÚT TIỀN</button>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Modal Popup Trạng Thái Game -->
+    <div class="modal" id="gameModal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">THÔNG BÁO</h2>
+            <div class="modal-body">
+                <div class="spinner"></div>
+                <p>Đang tải tài nguyên trò chơi 3D...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
+
+
+
+                  
+
